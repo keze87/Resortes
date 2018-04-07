@@ -1,4 +1,5 @@
 .vscode/
+.atom-dbg.cson
 .buildconfig
 main
 CT29

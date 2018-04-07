@@ -1,4 +1,4 @@
-CC=LC_ALL=C gcc -lm -std=c11 -Wall -pedantic -pedantic-errors
+CC=LC_ALL=C gcc -g -lm -std=c11 -Wall -pedantic -pedantic-errors
 
 OBJS=main.c main.h greatest.h tests.c tests.h
 
@@ -11,7 +11,7 @@ pre-build:
 
 post-build:
 	printf "\n\n"
-	./main
+	./main || true
 
 main-build: main
 
