@@ -11,7 +11,7 @@ pre-build:
 
 post-build:
 	printf "\n\n"
-	./main || true
+	./main || echo "ERROR: $$?"
 
 main-build: main
 
@@ -21,5 +21,4 @@ main: $(OBJS)
 	@$(MAKE) --no-print-directory post-build
 
 clean:
-	rm main || true
-	rm *.o || true
+	rm main *.o || true

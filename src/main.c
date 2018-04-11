@@ -6,6 +6,8 @@
 
 #define  TRUE 0
 #define  FALSE 1
+#define  FRACASO -32000
+#define  MAXITERACIONES 100
 
 #define MAXRAICES 10
 
@@ -335,12 +337,20 @@ void buscarIntervalosDeRaices (struct TVectorDatos datos, TListaSimple * interva
 
 }
 
-TListaSimple buscarRaiz (struct TVectorDatos datos, struct TIntervalos intervalo,
+struct TRaiz {
+
+	TListaSimple tabla;
+	double raiz;
+	double errorAbs;
+
+};
+
+struct TRaiz buscarRaizDentroDeIntervalo (struct TVectorDatos datos, struct TIntervalos intervalo,
 						int (* metodo)(struct retornoMetodo *,double,double,struct TVectorDatos)) {
 
-	TListaSimple retorno;
+	struct TRaiz retorno;
 
-	L_Crear (& retorno, sizeof(struct TElemRaiz));
+	L_Crear (& retorno.tabla, sizeof(struct TElemRaiz));
 
 	struct TElemRaiz elemIteracionK;
 
@@ -349,35 +359,49 @@ TListaSimple buscarRaiz (struct TVectorDatos datos, struct TIntervalos intervalo
 	elemIteracionK.k = 0;
 	elemIteracionK.intervaloMin = intervalo.intervaloMin;
 	elemIteracionK.intervaloMax = intervalo.intervaloMax;
+	elemIteracionK.funcIntervaloMin = funcion (datos, intervalo.intervaloMin);
+	elemIteracionK.funcIntervaloMax = funcion (datos, intervalo.intervaloMax);
 
-	int aux = metodo(& retornoMetodo, intervalo.intervaloMin, intervalo.intervaloMax, datos);
+	int aux = metodo (& retornoMetodo, intervalo.intervaloMin, intervalo.intervaloMax, datos);
 
-	while (aux == TRUE) {
+	while (aux == TRUE && elemIteracionK.k < MAXITERACIONES ) {
 
 		elemIteracionK.raiz = retornoMetodo.raiz;
 		elemIteracionK.errorAbs = retornoMetodo.error;
 
 		if (retornoMetodo.raiz != 0)
 			elemIteracionK.errorRel = fabs(retornoMetodo.error / retornoMetodo.raiz);
+		else
+			elemIteracionK.errorRel = FRACASO;
 
 		if (elemIteracionK.k < 2) {
-			elemIteracionK.lambda = -999;
-			elemIteracionK.p = -999;
+			elemIteracionK.lambda = FRACASO;
+			elemIteracionK.p = FRACASO;
 		} else {
 			//TODO
+
+			/* buscarLambdaYP(retorno,retornoMetodo,lamda,p)
+			retorno sin &
+			itero hacia atras, 3 veces? */
+
 			elemIteracionK.lambda = 3;
 			elemIteracionK.p = 1;
 		}
 
-		L_Insertar_Cte(& retorno, L_Siguiente, & elemIteracionK);
+		L_Insertar_Cte (& retorno.tabla, L_Siguiente, & elemIteracionK);
 
+		elemIteracionK.k++;
 		elemIteracionK.intervaloMin = retornoMetodo.intervaloMin;
 		elemIteracionK.intervaloMax = retornoMetodo.intervaloMax;
-		elemIteracionK.k++;
+		elemIteracionK.funcIntervaloMin = funcion (datos, retornoMetodo.intervaloMin);
+		elemIteracionK.funcIntervaloMax = funcion (datos, retornoMetodo.intervaloMax);
 
-		aux = metodo(& retornoMetodo, elemIteracionK.intervaloMin, elemIteracionK.intervaloMax, datos);
+		aux = metodo (& retornoMetodo, elemIteracionK.intervaloMin, elemIteracionK.intervaloMax, datos);
 
 	}
+
+	retorno.raiz = elemIteracionK.raiz;
+	retorno.errorAbs = elemIteracionK.errorAbs;
 
 	return retorno;
 
@@ -387,16 +411,16 @@ int regulaFalsi (struct retornoMetodo * retornoMetodo, double intervaloMin, doub
 
 	double puntoMedio;
 
-	if ( ! ((intervaloMin < intervaloMax) && (funcion(datos, intervaloMin) * funcion(datos, intervaloMax) < 0)) \
-		|| (fabs(intervaloMin - intervaloMax) < 0.0000000000005))
+	//TODO: definir error
+	//TODO: corta por MAXITERACIONES
+	if ( ! ((intervaloMin < intervaloMax) && (funcion (datos, intervaloMin) * funcion (datos, intervaloMax) < 0)) \
+		|| (fabs (intervaloMin - intervaloMax) < 5E-15))
 			return FALSE;
 
-	puntoMedio = intervaloMin - funcion(datos, intervaloMin) * (intervaloMax - intervaloMin) / \
-											(funcion(datos, intervaloMax) - funcion(datos, intervaloMin));
+	puntoMedio = intervaloMin - funcion (datos, intervaloMin) * (intervaloMax - intervaloMin) / \
+											(funcion (datos, intervaloMax) - funcion (datos, intervaloMin));
 
-	//TODO: definir error
-
-	if (funcion(datos, intervaloMin) * funcion(datos, puntoMedio) < 0) {
+	if (funcion (datos, intervaloMin) * funcion (datos, puntoMedio) < 0) {
 		retornoMetodo->intervaloMin = intervaloMin;
 		retornoMetodo->intervaloMax = puntoMedio;
 	} else {
@@ -404,38 +428,29 @@ int regulaFalsi (struct retornoMetodo * retornoMetodo, double intervaloMin, doub
 		retornoMetodo->intervaloMax = intervaloMax;
 	}
 
-	retornoMetodo->error = fabs(retornoMetodo->intervaloMin - retornoMetodo->intervaloMax);
+	retornoMetodo->error = fabs (retornoMetodo->intervaloMin - retornoMetodo->intervaloMax);
 	retornoMetodo->raiz = puntoMedio;
 
 	return TRUE;
 
 }
 
-struct TRaiz {
+void buscarTodasRaices (TListaSimple * raices, struct TVectorDatos datos, EMetodos metodo) {
 
-	TListaSimple tabla;
-	double raiz;
-	double error;
-
-};
-
-void buscarRaices (TListaSimple * raices, struct TVectorDatos datos, EMetodos metodo) {
-
-	L_Crear (raices, sizeof(TListaSimple));
+	L_Crear (raices, sizeof(struct TRaiz));
 
 	TListaSimple intervalosDeRaices;
 	buscarIntervalosDeRaices (datos, & intervalosDeRaices);
-
-	struct TIntervalos elem;
 
 	int aux = L_Mover_Cte (& intervalosDeRaices, L_Primero);
 
 	while (aux == TRUE) {
 
+		struct TIntervalos elem;
 		L_Elem_Cte (intervalosDeRaices, & elem);
 
 		//TODO: switch metodos
-		TListaSimple raiz = buscarRaiz (datos, elem, regulaFalsi);
+		struct TRaiz raiz = buscarRaizDentroDeIntervalo (datos, elem, regulaFalsi);
 
 		L_Insertar_Cte (raices, L_Siguiente, & raiz);
 
@@ -455,7 +470,7 @@ void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 
 		case 1:
 			datos.masaParticula = 0;
-			buscarRaices (& raices, datos, RegulaFalsi);
+			buscarTodasRaices (& raices, datos, RegulaFalsi);
 			break;
 
 	}

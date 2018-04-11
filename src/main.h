@@ -25,6 +25,14 @@ struct TVectorDatos {
 
 };
 
+typedef enum {
+
+	NewtonRaphson,
+	RegulaFalsi,
+	PuntoFijo
+
+} EMetodos;
+
 struct retornoMetodo {
 
 	double raiz;
@@ -63,6 +71,14 @@ typedef struct {
 
 } TListaSimple;
 
+struct TRaiz {
+
+	TListaSimple tabla;
+	double raiz;
+	double errorAbs;
+
+};
+
 int L_Vacia (TListaSimple Ls);
 void L_Elem_Cte (TListaSimple Ls, void * pE);
 int L_Mover_Cte (TListaSimple * pLs, TMovimiento_Ls M);
@@ -70,7 +86,8 @@ void L_Vaciar (TListaSimple * pLs);
 
 int proceso ();
 struct TVectorDatos cargarVectorDatos ();
-TListaSimple buscarRaiz (struct TVectorDatos datos, struct TIntervalos intervalo,
+TListaSimple buscarRaizDentroDeIntervalo (struct TVectorDatos datos, struct TIntervalos intervalo,
 						int (* metodo)(struct retornoMetodo *,double,double,struct TVectorDatos));
 int regulaFalsi (struct retornoMetodo * retornoMetodo, double intervaloMin, double intervaloMax, struct TVectorDatos datos);
 double funcion (struct TVectorDatos d, double y);
+void buscarTodasRaices (TListaSimple * raices, struct TVectorDatos datos, EMetodos metodo);
