@@ -7,7 +7,7 @@
 #define  TRUE 0
 #define  FALSE 1
 #define  FRACASO -32000
-#define  MAXITERACIONES 100
+#define  MAXITERACIONES 1000
 
 #define MAXRAICES 10
 
@@ -49,7 +49,7 @@ typedef enum {
 
 } EMetodos;
 
-struct retornoMetodo {
+struct TRetornoMetodo {
 
 	double raiz;
 	double error;
@@ -93,21 +93,6 @@ struct TVectorDatos cargarVectorDatos () {
  *
  */
 
- struct TElemRaiz {
-
- 	int k;
- 	double intervaloMin;
- 	double intervaloMax;
- 	double funcIntervaloMin;
- 	double funcIntervaloMax;
- 	double raiz;
- 	double errorAbs;
- 	double errorRel;
- 	double lambda;
- 	double p;
-
- };
-
 // https://github.com/fiuba-7541/elemental ?
 /*
  * Movimientos que va a manejar la estructura. Son de conocimiento público,
@@ -143,6 +128,30 @@ typedef struct {
 
 } TListaSimple;
 
+struct TElemRaiz {
+
+	int k;
+	double intervaloMin;
+	double intervaloMax;
+	double funcIntervaloMin;
+	double funcIntervaloMax;
+	double raiz;
+	double errorAbs;
+	double errorRel;
+	float lambda;
+	float p;
+
+};
+
+struct TRaiz {
+
+	TListaSimple iteraciones;
+	double raiz;
+	double errorAbs;
+	int k;
+
+ };
+
 /**
  * L_CREAR
  * Pre: Ls no fue creada.
@@ -165,13 +174,10 @@ void L_Vaciar (TListaSimple * pLs) {
 
 	TNodoListaSimple * pNodo, * Siguiente;
 
-	for(pNodo = pLs->Primero; (pNodo); pNodo = Siguiente) {
-
+	for (pNodo = pLs->Primero; (pNodo); pNodo = Siguiente) {
 		Siguiente = pNodo->Siguiente;
-
-		free(pNodo->Elem);
-		free(pNodo);
-
+		free (pNodo->Elem);
+		free (pNodo);
 	}
 
 	pLs->Primero = pLs->Corriente = NULL;
@@ -199,7 +205,7 @@ int L_Vacia (TListaSimple Ls) {
  */
 void L_Elem_Cte (TListaSimple Ls, void * pE) {
 
-	memcpy(pE, Ls.Corriente->Elem, Ls.TamanioDato);
+	memcpy (pE, Ls.Corriente->Elem, Ls.TamanioDato);
 
 }
 
@@ -216,28 +222,64 @@ void L_Elem_Cte (TListaSimple Ls, void * pE) {
 int L_Mover_Cte (TListaSimple * pLs, TMovimiento_Ls M) {
 
 	switch (M) {
-
 		case L_Primero:
 			pLs->Corriente = pLs->Primero;
 			break;
-
 		case L_Siguiente:
 			if (pLs->Corriente->Siguiente == NULL)
 				return FALSE;
 			else
 				pLs->Corriente = pLs->Corriente->Siguiente;
 			break;
-
 		case L_Anterior:
 			if (pLs->Corriente->Anterior == NULL)
 				return FALSE;
 			else
 				pLs->Corriente = pLs->Corriente->Anterior;
 			break;
-
 	}
 
 	return TRUE;
+
+}
+
+/**
+ * L_BORRAR_CTE
+ * Pre: Ls creada y no vacia.
+ * Post: Se elimino el elemento Corriente, El nuevo elemento es el Siguiente o
+ * el Anterior si el Corriente era el ultimo elemento.
+ */
+void L_Borrar_Cte (TListaSimple * pLs) {
+
+	TNodoListaSimple * pNodo = pLs->Corriente;
+
+	if (pLs->Corriente == pLs->Primero)
+	{
+		pLs->Primero = pLs->Primero->Siguiente;
+		pLs->Corriente = pLs->Primero;
+		if (pLs->Corriente != NULL)
+			pLs->Corriente->Anterior = NULL;
+	} else {
+		if (pLs->Corriente->Siguiente) {
+			/* En este caso en que el corriente no es el ultimo, puedo evitarme
+			 * recorrer toda la lista buscando el anterior */
+			pNodo = pLs->Corriente->Siguiente;
+			memcpy (pLs->Corriente->Elem, pNodo->Elem, pLs->TamanioDato);
+			pLs->Corriente->Siguiente = pNodo->Siguiente;
+			if (pLs->Corriente->Siguiente != NULL)
+				pLs->Corriente->Siguiente->Anterior = pLs->Corriente;
+		} else {
+			/*TNodoListaSimple * pAux = pLs->Primero;
+			while (pAux->Siguiente != pLs->Corriente)
+				pAux = pAux->Siguiente;
+			pAux->Siguiente = pLs->Corriente->Siguiente;
+			pLs->Corriente = pAux; / *Si es el último queda en el Anterior al borrado * /*/
+			pLs->Corriente->Anterior->Siguiente = NULL;
+		}
+	}
+
+	free (pNodo->Elem);
+	free (pNodo);
 
 }
 
@@ -260,26 +302,20 @@ int L_Insertar_Cte (TListaSimple * pLs, TMovimiento_Ls M, void * pE) {
 	pNodo->Elem = malloc(pLs->TamanioDato);
 
 	if (!pNodo->Elem) {
-
-		free(pNodo);
-
+		free (pNodo);
 		return FALSE;
-
 	}
 
 	memcpy(pNodo->Elem, pE, pLs->TamanioDato);
 
 	if ((pLs->Primero == NULL) || (M == L_Primero) || ((M == L_Anterior) && (pLs->Primero == pLs->Corriente))) {
-
 		/*Si está vacía o hay que insertar en el Primero o
 		hay que insertar en el Anterior y el actual es el Primero */
 		pNodo->Siguiente = pLs->Primero;
 		if (pLs->Primero != NULL)
 			pLs->Primero->Anterior = pNodo;
 		pLs->Primero = pLs->Corriente = pNodo;
-
 	} else {
-
 		// Siempre inserto como siguiente, el nodo nuevo, porque es más fácil
 		pNodo->Siguiente = pLs->Corriente->Siguiente;
 		pNodo->Anterior = pLs->Corriente;
@@ -288,18 +324,14 @@ int L_Insertar_Cte (TListaSimple * pLs, TMovimiento_Ls M, void * pE) {
 		pLs->Corriente->Siguiente = pNodo;
 
 		if (M == L_Anterior) {
-
 			// Pero cuando el movimiento es Anterior, entonces swapeo los elementos
 			void * tmp = pNodo->Elem;
 			pNodo->Elem = pLs->Corriente->Elem;
 			pLs->Corriente->Elem = tmp;
-
 		}
-
 	}
 
 	pLs->Corriente = pNodo;
-
 	return TRUE;
 
 }
@@ -313,7 +345,7 @@ double funcion (struct TVectorDatos d, double y) {
 
 void buscarIntervalosDeRaices (struct TVectorDatos datos, TListaSimple * intervalos) {
 
-	L_Crear(intervalos, sizeof(struct TIntervalos));
+	L_Crear (intervalos, sizeof(struct TIntervalos));
 
 	struct TIntervalos aux;
 
@@ -321,40 +353,68 @@ void buscarIntervalosDeRaices (struct TVectorDatos datos, TListaSimple * interva
 
 	// TODO: funcion = 0?
 	while (y < 10.1 * datos.longitudNatural) {
-
 		if (funcion (datos, y) * funcion (datos, y + 0.5) < 0) {
-
 			aux.intervaloMin = y;
 			aux.intervaloMax = y + 0.5;
 
 			L_Insertar_Cte(intervalos, L_Siguiente, & aux);
-
 		}
 
 		y += 0.5;
-
 	}
 
 }
 
-struct TRaiz {
+void aproximarLambdaYP (TListaSimple iteraciones, struct TRetornoMetodo ultimaIteracion, float * lambda, float * p) {
 
-	TListaSimple tabla;
-	double raiz;
-	double errorAbs;
+	double xKMas1;
+	double xK;
+	double xKMenos1;
+	double xKMenos2;
 
-};
+	xKMas1 = ultimaIteracion.raiz;
 
-struct TRaiz buscarRaizDentroDeIntervalo (struct TVectorDatos datos, struct TIntervalos intervalo,
-						int (* metodo)(struct retornoMetodo *,double,double,struct TVectorDatos)) {
+	struct TElemRaiz elemAux;
+	L_Elem_Cte (iteraciones, & elemAux);
+	xK = elemAux.raiz;
+	L_Mover_Cte (& iteraciones, L_Anterior);
+
+	L_Elem_Cte (iteraciones, & elemAux);
+	xKMenos1 = elemAux.raiz;
+	L_Mover_Cte (& iteraciones, L_Anterior);
+
+	L_Elem_Cte (iteraciones, & elemAux);
+	xKMenos2 = elemAux.raiz;
+
+	double deltaXKMas1 = fabs (xKMas1 - xK);
+	double deltaXK = fabs (xK - xKMenos1);
+	double deltaXKMenos1 = fabs (xKMenos1 - xKMenos2);
+
+	* p = log (deltaXKMas1 / deltaXK) / log (deltaXK / deltaXKMenos1);
+
+	* lambda = deltaXKMas1 / pow (deltaXK, * p);
+
+}
+
+struct TRaiz buscarRaizDentroDeIntervaloMetodoDeConv (struct TVectorDatos datos, struct TIntervalos intervalo,
+						int (* metodo)(struct TRetornoMetodo *,double,double,struct TVectorDatos)) {
 
 	struct TRaiz retorno;
 
-	L_Crear (& retorno.tabla, sizeof(struct TElemRaiz));
+	return retorno;
+
+}
+
+struct TRaiz buscarRaizDentroDeIntervaloMetodoArranque (struct TVectorDatos datos, struct TIntervalos intervalo,
+						int (* metodo)(struct TRetornoMetodo *,double,double,struct TVectorDatos)) {
+
+	struct TRaiz retorno;
+
+	L_Crear (& retorno.iteraciones, sizeof(struct TElemRaiz));
 
 	struct TElemRaiz elemIteracionK;
 
-	struct retornoMetodo retornoMetodo;
+	struct TRetornoMetodo retornoMetodo;
 
 	elemIteracionK.k = 0;
 	elemIteracionK.intervaloMin = intervalo.intervaloMin;
@@ -365,30 +425,21 @@ struct TRaiz buscarRaizDentroDeIntervalo (struct TVectorDatos datos, struct TInt
 	int aux = metodo (& retornoMetodo, intervalo.intervaloMin, intervalo.intervaloMax, datos);
 
 	while (aux == TRUE && elemIteracionK.k < MAXITERACIONES ) {
-
 		elemIteracionK.raiz = retornoMetodo.raiz;
 		elemIteracionK.errorAbs = retornoMetodo.error;
 
 		if (retornoMetodo.raiz != 0)
-			elemIteracionK.errorRel = fabs(retornoMetodo.error / retornoMetodo.raiz);
+			elemIteracionK.errorRel = fabs (retornoMetodo.error / retornoMetodo.raiz);
 		else
 			elemIteracionK.errorRel = FRACASO;
 
-		if (elemIteracionK.k < 2) {
+		if (elemIteracionK.k <= 2) {
 			elemIteracionK.lambda = FRACASO;
 			elemIteracionK.p = FRACASO;
-		} else {
-			//TODO
+		} else
+			aproximarLambdaYP (retorno.iteraciones, retornoMetodo, & elemIteracionK.lambda, & elemIteracionK.p);
 
-			/* buscarLambdaYP(retorno,retornoMetodo,lamda,p)
-			retorno sin &
-			itero hacia atras, 3 veces? */
-
-			elemIteracionK.lambda = 3;
-			elemIteracionK.p = 1;
-		}
-
-		L_Insertar_Cte (& retorno.tabla, L_Siguiente, & elemIteracionK);
+		L_Insertar_Cte (& retorno.iteraciones, L_Siguiente, & elemIteracionK);
 
 		elemIteracionK.k++;
 		elemIteracionK.intervaloMin = retornoMetodo.intervaloMin;
@@ -397,17 +448,17 @@ struct TRaiz buscarRaizDentroDeIntervalo (struct TVectorDatos datos, struct TInt
 		elemIteracionK.funcIntervaloMax = funcion (datos, retornoMetodo.intervaloMax);
 
 		aux = metodo (& retornoMetodo, elemIteracionK.intervaloMin, elemIteracionK.intervaloMax, datos);
-
 	}
 
 	retorno.raiz = elemIteracionK.raiz;
 	retorno.errorAbs = elemIteracionK.errorAbs;
+	retorno.k = elemIteracionK.k;
 
 	return retorno;
 
 }
 
-int regulaFalsi (struct retornoMetodo * retornoMetodo, double intervaloMin, double intervaloMax, struct TVectorDatos datos) {
+int regulaFalsi (struct TRetornoMetodo * retornoMetodo, double intervaloMin, double intervaloMax, struct TVectorDatos datos) {
 
 	double puntoMedio;
 
@@ -435,6 +486,18 @@ int regulaFalsi (struct retornoMetodo * retornoMetodo, double intervaloMin, doub
 
 }
 
+// TODO
+int newtonRaphson (struct TRetornoMetodo * retornoMetodo, double intervaloMin, double intervaloMax, struct TVectorDatos datos) {
+
+	return FRACASO;
+
+}
+
+int puntoFijo (struct TRetornoMetodo * retornoMetodo, double intervaloMin, double intervaloMax, struct TVectorDatos datos) {
+
+	return FRACASO;
+
+}
 void buscarTodasRaices (TListaSimple * raices, struct TVectorDatos datos, EMetodos metodo) {
 
 	L_Crear (raices, sizeof(struct TRaiz));
@@ -445,20 +508,67 @@ void buscarTodasRaices (TListaSimple * raices, struct TVectorDatos datos, EMetod
 	int aux = L_Mover_Cte (& intervalosDeRaices, L_Primero);
 
 	while (aux == TRUE) {
-
 		struct TIntervalos elem;
 		L_Elem_Cte (intervalosDeRaices, & elem);
 
-		//TODO: switch metodos
-		struct TRaiz raiz = buscarRaizDentroDeIntervalo (datos, elem, regulaFalsi);
+		struct TRaiz raiz;
+		switch (metodo) {
+			case RegulaFalsi:
+				raiz = buscarRaizDentroDeIntervaloMetodoArranque (datos, elem, regulaFalsi);
+				break;
+			case NewtonRaphson:
+				raiz = buscarRaizDentroDeIntervaloMetodoDeConv (datos, elem, newtonRaphson);
+				break;
+			case PuntoFijo:
+				raiz = buscarRaizDentroDeIntervaloMetodoDeConv (datos, elem, puntoFijo);
+				break;
+		}
 
 		L_Insertar_Cte (raices, L_Siguiente, & raiz);
 
 		aux = L_Mover_Cte (& intervalosDeRaices, L_Siguiente);
-
 	}
 
 	L_Vaciar (& intervalosDeRaices);
+
+}
+
+void filtrarRaices (TListaSimple * raices, char opcion) {
+
+	int aux;
+	struct TRaiz raiz;
+
+	switch (opcion) {
+		case 1:
+			aux = L_Mover_Cte (raices, L_Primero);
+
+			while (aux == TRUE) {
+				L_Elem_Cte (* raices, & raiz);
+
+				if (raiz.raiz <= 0)
+					L_Borrar_Cte (raices);
+				else
+					aux = L_Mover_Cte (raices, L_Siguiente);
+			}
+
+			break;
+	}
+
+}
+
+void limpiarRaices (TListaSimple * raices) {
+
+	int aux = L_Mover_Cte (raices, L_Primero);
+
+	while (aux == TRUE) {
+		struct TRaiz raiz;
+		L_Elem_Cte (* raices, & raiz);
+		L_Vaciar (& raiz.iteraciones);
+
+		aux = L_Mover_Cte (raices, L_Siguiente);
+	}
+
+	L_Vaciar (raices);
 
 }
 
@@ -467,12 +577,14 @@ void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 	TListaSimple raices;
 
 	switch (opcion) {
-
 		case 1:
 			datos.masaParticula = 0;
 			buscarTodasRaices (& raices, datos, RegulaFalsi);
-			break;
+			filtrarRaices (& raices, opcion);
+			//imprimirRaicesMetodoArranque (raices);
 
+			limpiarRaices (& raices);
+			break;
 	}
 
 	//buscarRaices (& raices, datos);

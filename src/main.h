@@ -11,8 +11,8 @@ struct TElemRaiz {
 	double raiz;
 	double errorAbs;
 	double errorRel;
-	double lambda;
-	double p;
+	float lambda;
+	float p;
 
 };
 
@@ -73,9 +73,10 @@ typedef struct {
 
 struct TRaiz {
 
-	TListaSimple tabla;
+	TListaSimple iteraciones;
 	double raiz;
 	double errorAbs;
+	int k;
 
 };
 
@@ -86,8 +87,11 @@ void L_Vaciar (TListaSimple * pLs);
 
 int proceso ();
 struct TVectorDatos cargarVectorDatos ();
-TListaSimple buscarRaizDentroDeIntervalo (struct TVectorDatos datos, struct TIntervalos intervalo,
+TListaSimple buscarRaizDentroDeIntervaloMetodoArranque (struct TVectorDatos datos, struct TIntervalos intervalo,
+						int (* metodo)(struct retornoMetodo *,double,double,struct TVectorDatos));
+TListaSimple buscarRaizDentroDeIntervaloMetodoDeConv (struct TVectorDatos datos, struct TIntervalos intervalo,
 						int (* metodo)(struct retornoMetodo *,double,double,struct TVectorDatos));
 int regulaFalsi (struct retornoMetodo * retornoMetodo, double intervaloMin, double intervaloMax, struct TVectorDatos datos);
 double funcion (struct TVectorDatos d, double y);
 void buscarTodasRaices (TListaSimple * raices, struct TVectorDatos datos, EMetodos metodo);
+void limpiarRaices (TListaSimple * raices);

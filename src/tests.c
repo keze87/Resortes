@@ -25,7 +25,7 @@ TEST testBuscarRaiz (void) {
 	intervalo.intervaloMin = -3;
 	intervalo.intervaloMax = 0;
 
-	TListaSimple raiz = buscarRaizDentroDeIntervalo (datos, intervalo, regulaFalsi);
+	TListaSimple raiz = buscarRaizDentroDeIntervaloMetodoArranque (datos, intervalo, regulaFalsi);
 	GREATEST_ASSERT (L_Vacia (raiz) == FALSE);
 
 	struct TElemRaiz elemRaiz;
@@ -41,7 +41,7 @@ TEST testBuscarRaiz (void) {
 	intervalo.intervaloMin = -1;
 	intervalo.intervaloMax = +1.5;
 
-	raiz = buscarRaizDentroDeIntervalo (datos, intervalo, regulaFalsi);
+	raiz = buscarRaizDentroDeIntervaloMetodoArranque (datos, intervalo, regulaFalsi);
 	GREATEST_ASSERT (L_Vacia (raiz) == FALSE);
 
 	L_Elem_Cte (raiz, & elemRaiz); // Solo me fijo en el resultado
@@ -69,7 +69,7 @@ TEST testBuscarRaices (void) {
 	L_Elem_Cte (raices, & raiz); printf ("Raiz = %f +- %f\n", raiz.raiz, raiz.errorAbs);
 	GREATEST_ASSERT (L_Mover_Cte (& raices, L_Siguiente) == FALSE); // Una sola raiz
 
-	L_Vaciar (& raices);
+	limpiarRaices (& raices);
 
 	printf ("m=0\n");
 	datos.masaParticula = 0;
@@ -86,7 +86,7 @@ TEST testBuscarRaices (void) {
 	L_Elem_Cte (raices, & raiz); printf ("Raiz = %f +- %f\n", raiz.raiz, raiz.errorAbs);
 	GREATEST_ASSERT (L_Mover_Cte (& raices, L_Siguiente) == FALSE); // 3 raices
 
-	L_Vaciar (& raices);
+	limpiarRaices (& raices);
 	PASS ();
 
 }
