@@ -41,52 +41,6 @@ void imprimirEnunciado (short enunciado) {
 
 }
 
-typedef enum {
-
-	NewtonRaphson,
-	RegulaFalsi,
-	PuntoFijo
-
-} EMetodos;
-
-struct TRetornoMetodo {
-
-	double raiz;
-	double error;
-	double intervaloMin;
-	double intervaloMax;
-
-};
-
-struct TVectorDatos {
-
-	float longitudNatural;
-	float masaParticula;
-	int constElastica;
-	int distEntreExtremosFijos;
-
-};
-
-struct TIntervalos {
-
-	double intervaloMin;
- 	double intervaloMax;
-
-};
-
-struct TVectorDatos cargarVectorDatos () {
-
-	struct TVectorDatos aux;
-
-	aux.longitudNatural	= 2.05;
-	aux.masaParticula	= 1.02;
-	aux.constElastica	= 10;
-	aux.distEntreExtremosFijos = 1;
-
-	return aux;
-
-}
-
 /*
  *
  * Manejo de lista
@@ -127,30 +81,6 @@ typedef struct {
 	int TamanioDato;
 
 } TListaSimple;
-
-struct TElemRaiz {
-
-	int k;
-	double intervaloMin;
-	double intervaloMax;
-	double funcIntervaloMin;
-	double funcIntervaloMax;
-	double raiz;
-	double errorAbs;
-	double errorRel;
-	float lambda;
-	float p;
-
-};
-
-struct TRaiz {
-
-	TListaSimple iteraciones;
-	double raiz;
-	double errorAbs;
-	int k;
-
- };
 
 /**
  * L_CREAR
@@ -269,12 +199,9 @@ void L_Borrar_Cte (TListaSimple * pLs) {
 			if (pLs->Corriente->Siguiente != NULL)
 				pLs->Corriente->Siguiente->Anterior = pLs->Corriente;
 		} else {
-			/*TNodoListaSimple * pAux = pLs->Primero;
-			while (pAux->Siguiente != pLs->Corriente)
-				pAux = pAux->Siguiente;
-			pAux->Siguiente = pLs->Corriente->Siguiente;
-			pLs->Corriente = pAux; / *Si es el último queda en el Anterior al borrado * /*/
+			/* Si es el último queda en el Anterior al borrado */
 			pLs->Corriente->Anterior->Siguiente = NULL;
+			pLs->Corriente = pLs->Corriente->Anterior;
 		}
 	}
 
@@ -335,6 +262,76 @@ int L_Insertar_Cte (TListaSimple * pLs, TMovimiento_Ls M, void * pE) {
 	return TRUE;
 
 }
+
+typedef enum {
+
+	NewtonRaphson,
+	RegulaFalsi,
+	PuntoFijo
+
+} EMetodos;
+
+struct TRetornoMetodo {
+
+	double raiz;
+	double error;
+	double intervaloMin;
+	double intervaloMax;
+
+};
+
+struct TVectorDatos {
+
+	float longitudNatural;
+	float masaParticula;
+	int constElastica;
+	int distEntreExtremosFijos;
+
+};
+
+struct TIntervalos {
+
+	double intervaloMin;
+ 	double intervaloMax;
+
+};
+
+struct TVectorDatos cargarVectorDatos () {
+
+	struct TVectorDatos aux;
+
+	aux.longitudNatural	= 2.05;
+	aux.masaParticula	= 1.02;
+	aux.constElastica	= 10;
+	aux.distEntreExtremosFijos = 1;
+
+	return aux;
+
+}
+
+struct TElemRaiz {
+
+	int k;
+	double intervaloMin;
+	double intervaloMax;
+	double funcIntervaloMin;
+	double funcIntervaloMax;
+	double raiz;
+	double errorAbs;
+	double errorRel;
+	float lambda;
+	float p;
+
+};
+
+struct TRaiz {
+
+	TListaSimple iteraciones;
+	double raiz;
+	double errorAbs;
+	int k;
+
+ };
 
 double funcion (struct TVectorDatos d, double y) {
 
@@ -399,18 +396,18 @@ void aproximarLambdaYP (TListaSimple iteraciones, struct TRetornoMetodo ultimaIt
 struct TRaiz buscarRaizDentroDeIntervaloMetodoDeConv (struct TVectorDatos datos, struct TIntervalos intervalo,
 						int (* metodo)(struct TRetornoMetodo *,double,double,struct TVectorDatos)) {
 
-	struct TRaiz retorno;
+	struct TRaiz tabla;
 
-	return retorno;
+	return tabla;
 
 }
 
 struct TRaiz buscarRaizDentroDeIntervaloMetodoArranque (struct TVectorDatos datos, struct TIntervalos intervalo,
 						int (* metodo)(struct TRetornoMetodo *,double,double,struct TVectorDatos)) {
 
-	struct TRaiz retorno;
+	struct TRaiz tabla;
 
-	L_Crear (& retorno.iteraciones, sizeof(struct TElemRaiz));
+	L_Crear (& tabla.iteraciones, sizeof(struct TElemRaiz));
 
 	struct TElemRaiz elemIteracionK;
 
@@ -424,7 +421,7 @@ struct TRaiz buscarRaizDentroDeIntervaloMetodoArranque (struct TVectorDatos dato
 
 	int aux = metodo (& retornoMetodo, intervalo.intervaloMin, intervalo.intervaloMax, datos);
 
-	while (aux == TRUE && elemIteracionK.k < MAXITERACIONES ) {
+	while (aux == TRUE && elemIteracionK.k < MAXITERACIONES) {
 		elemIteracionK.raiz = retornoMetodo.raiz;
 		elemIteracionK.errorAbs = retornoMetodo.error;
 
@@ -437,9 +434,9 @@ struct TRaiz buscarRaizDentroDeIntervaloMetodoArranque (struct TVectorDatos dato
 			elemIteracionK.lambda = FRACASO;
 			elemIteracionK.p = FRACASO;
 		} else
-			aproximarLambdaYP (retorno.iteraciones, retornoMetodo, & elemIteracionK.lambda, & elemIteracionK.p);
+			aproximarLambdaYP (tabla.iteraciones, retornoMetodo, & elemIteracionK.lambda, & elemIteracionK.p);
 
-		L_Insertar_Cte (& retorno.iteraciones, L_Siguiente, & elemIteracionK);
+		L_Insertar_Cte (& tabla.iteraciones, L_Siguiente, & elemIteracionK);
 
 		elemIteracionK.k++;
 		elemIteracionK.intervaloMin = retornoMetodo.intervaloMin;
@@ -450,11 +447,11 @@ struct TRaiz buscarRaizDentroDeIntervaloMetodoArranque (struct TVectorDatos dato
 		aux = metodo (& retornoMetodo, elemIteracionK.intervaloMin, elemIteracionK.intervaloMax, datos);
 	}
 
-	retorno.raiz = elemIteracionK.raiz;
-	retorno.errorAbs = elemIteracionK.errorAbs;
-	retorno.k = elemIteracionK.k;
+	tabla.raiz = elemIteracionK.raiz;
+	tabla.errorAbs = elemIteracionK.errorAbs;
+	tabla.k = elemIteracionK.k;
 
-	return retorno;
+	return tabla;
 
 }
 
@@ -545,9 +542,10 @@ void filtrarRaices (TListaSimple * raices, char opcion) {
 			while (aux == TRUE) {
 				L_Elem_Cte (* raices, & raiz);
 
-				if (raiz.raiz <= 0)
+				if (raiz.raiz <= 0) {
+					L_Vaciar (& raiz.iteraciones);
 					L_Borrar_Cte (raices);
-				else
+				} else
 					aux = L_Mover_Cte (raices, L_Siguiente);
 			}
 
