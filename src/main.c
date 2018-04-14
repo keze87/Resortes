@@ -4,14 +4,15 @@
 #include <memory.h>
 #include <math.h>
 
-#define  TRUE 0
-#define  FALSE 1
-#define  FRACASO -32000
-#define  MAXITERACIONES 1000
-
+#define TRUE 0
+#define FALSE 1
+#define FRACASO -32000
+#define MAXITERACIONES 1000
+#define TAMMATRIZX 10
+#define TAMMATRIZY 22
 #define MAXRAICES 10
 
-void imprimirEnunciado (short enunciado) {
+void imprimirEnunciado (char enunciado) {
 
 	switch (enunciado) {
 
@@ -191,8 +192,6 @@ void L_Borrar_Cte (TListaSimple * pLs) {
 			pLs->Corriente->Anterior = NULL;
 	} else {
 		if (pLs->Corriente->Siguiente) {
-			/* En este caso en que el corriente no es el ultimo, puedo evitarme
-			 * recorrer toda la lista buscando el anterior */
 			pNodo = pLs->Corriente->Siguiente;
 			memcpy (pLs->Corriente->Elem, pNodo->Elem, pLs->TamanioDato);
 			pLs->Corriente->Siguiente = pNodo->Siguiente;
@@ -221,7 +220,7 @@ void L_Borrar_Cte (TListaSimple * pLs) {
  */
 int L_Insertar_Cte (TListaSimple * pLs, TMovimiento_Ls M, void * pE) {
 
-	TNodoListaSimple * pNodo = (TNodoListaSimple *) malloc(sizeof(TNodoListaSimple));
+	TNodoListaSimple * pNodo = (TNodoListaSimple *) malloc (sizeof(TNodoListaSimple));
 
 	if (!pNodo)
 		return FALSE; // No hay memoria disponible
@@ -292,7 +291,7 @@ struct TVectorDatos {
 struct TIntervalos {
 
 	double intervaloMin;
- 	double intervaloMax;
+	double intervaloMax;
 
 };
 
@@ -300,9 +299,9 @@ struct TVectorDatos cargarVectorDatos () {
 
 	struct TVectorDatos aux;
 
-	aux.longitudNatural	= 2.05;
-	aux.masaParticula	= 1.02;
-	aux.constElastica	= 10;
+	aux.longitudNatural = 2.05;
+	aux.masaParticula = 1.02;
+	aux.constElastica = 10;
 	aux.distEntreExtremosFijos = 1;
 
 	return aux;
@@ -320,7 +319,7 @@ struct TElemRaiz {
 	double errorAbs;
 	double errorRel;
 	float lambda;
-	float p;
+	float rho;
 
 };
 
@@ -331,7 +330,7 @@ struct TRaiz {
 	double errorAbs;
 	int k;
 
- };
+};
 
 double funcion (struct TVectorDatos d, double y) {
 
@@ -354,7 +353,7 @@ void buscarIntervalosDeRaices (struct TVectorDatos datos, TListaSimple * interva
 			aux.intervaloMin = y;
 			aux.intervaloMax = y + 0.5;
 
-			L_Insertar_Cte(intervalos, L_Siguiente, & aux);
+			L_Insertar_Cte (intervalos, L_Siguiente, & aux);
 		}
 
 		y += 0.5;
@@ -362,7 +361,7 @@ void buscarIntervalosDeRaices (struct TVectorDatos datos, TListaSimple * interva
 
 }
 
-void aproximarLambdaYP (TListaSimple iteraciones, struct TRetornoMetodo ultimaIteracion, float * lambda, float * p) {
+void aproximarLambdaYP (TListaSimple iteraciones, struct TRetornoMetodo ultimaIteracion, float * lambda, float * rho) {
 
 	double xKMas1;
 	double xK;
@@ -374,12 +373,12 @@ void aproximarLambdaYP (TListaSimple iteraciones, struct TRetornoMetodo ultimaIt
 	struct TElemRaiz elemAux;
 	L_Elem_Cte (iteraciones, & elemAux);
 	xK = elemAux.raiz;
-	L_Mover_Cte (& iteraciones, L_Anterior);
 
+	L_Mover_Cte (& iteraciones, L_Anterior);
 	L_Elem_Cte (iteraciones, & elemAux);
 	xKMenos1 = elemAux.raiz;
-	L_Mover_Cte (& iteraciones, L_Anterior);
 
+	L_Mover_Cte (& iteraciones, L_Anterior);
 	L_Elem_Cte (iteraciones, & elemAux);
 	xKMenos2 = elemAux.raiz;
 
@@ -387,9 +386,9 @@ void aproximarLambdaYP (TListaSimple iteraciones, struct TRetornoMetodo ultimaIt
 	double deltaXK = fabs (xK - xKMenos1);
 	double deltaXKMenos1 = fabs (xKMenos1 - xKMenos2);
 
-	* p = log (deltaXKMas1 / deltaXK) / log (deltaXK / deltaXKMenos1);
+	* rho = log (deltaXKMas1 / deltaXK) / log (deltaXK / deltaXKMenos1);
 
-	* lambda = deltaXKMas1 / pow (deltaXK, * p);
+	* lambda = deltaXKMas1 / pow (deltaXK, * rho);
 
 }
 
@@ -432,9 +431,9 @@ struct TRaiz buscarRaizDentroDeIntervaloMetodoArranque (struct TVectorDatos dato
 
 		if (elemIteracionK.k <= 2) {
 			elemIteracionK.lambda = FRACASO;
-			elemIteracionK.p = FRACASO;
+			elemIteracionK.rho = FRACASO;
 		} else
-			aproximarLambdaYP (tabla.iteraciones, retornoMetodo, & elemIteracionK.lambda, & elemIteracionK.p);
+			aproximarLambdaYP (tabla.iteraciones, retornoMetodo, & elemIteracionK.lambda, & elemIteracionK.rho);
 
 		L_Insertar_Cte (& tabla.iteraciones, L_Siguiente, & elemIteracionK);
 
@@ -461,8 +460,8 @@ int regulaFalsi (struct TRetornoMetodo * retornoMetodo, double intervaloMin, dou
 
 	//TODO: definir error
 	//TODO: corta por MAXITERACIONES
-	if ( ! ((intervaloMin < intervaloMax) && (funcion (datos, intervaloMin) * funcion (datos, intervaloMax) < 0)) \
-		|| (fabs (intervaloMin - intervaloMax) < 5E-15))
+	if ((intervaloMin >= intervaloMax) || (funcion (datos, intervaloMin) * funcion (datos, intervaloMax) >= 0) \
+		|| (fabs (intervaloMin - intervaloMax) < 5E-25))
 			return FALSE;
 
 	puntoMedio = intervaloMin - funcion (datos, intervaloMin) * (intervaloMax - intervaloMin) / \
@@ -495,6 +494,7 @@ int puntoFijo (struct TRetornoMetodo * retornoMetodo, double intervaloMin, doubl
 	return FRACASO;
 
 }
+
 void buscarTodasRaices (TListaSimple * raices, struct TVectorDatos datos, EMetodos metodo) {
 
 	L_Crear (raices, sizeof(struct TRaiz));
@@ -570,6 +570,172 @@ void limpiarRaices (TListaSimple * raices) {
 
 }
 
+/*
+ *
+ * Imprimir a pantalla
+ *
+ */
+
+void cargarMatrizRedondeadaCompleta (char * matriz[TAMMATRIZX][TAMMATRIZY], struct TRaiz raiz) {
+
+	int aux = L_Mover_Cte (& raiz.iteraciones, L_Primero);
+	int y = 1;
+
+	while (aux == TRUE) {
+		struct TElemRaiz iteracion;
+		L_Elem_Cte (raiz.iteraciones, & iteracion);
+
+		snprintf (matriz[0][y], 29, "%d", iteracion.k);
+		snprintf (matriz[1][y], 29, "%f", iteracion.intervaloMin);
+		snprintf (matriz[2][y], 29, "%f", iteracion.intervaloMax);
+		snprintf (matriz[3][y], 29, "%.1e", iteracion.funcIntervaloMin);
+		snprintf (matriz[4][y], 29, "%.1e", iteracion.funcIntervaloMax);
+		snprintf (matriz[5][y], 29, "%.16f", iteracion.raiz); // TODO: 16 digitos significativos .16f -> string -> contar numeros != 0
+		snprintf (matriz[6][y], 29, "%.1e", iteracion.errorAbs);
+		snprintf (matriz[7][y], 29, "%.1e", iteracion.errorRel);
+		snprintf (matriz[8][y], 29, "%f", iteracion.lambda);
+		snprintf (matriz[9][y], 29, "%f", iteracion.rho);
+
+		aux = L_Mover_Cte (& raiz.iteraciones, L_Siguiente);
+		y++;
+	}
+
+ }
+
+
+void cargarMatrizRedondeadaIncompleta (char * matriz[TAMMATRIZX][TAMMATRIZY], struct TRaiz raiz) {
+
+}
+
+// Llena una matriz (para imprimir) con los títulos y los números redondeados
+void cargarMatrizRedondeada (char * matriz[TAMMATRIZX][TAMMATRIZY], struct TRaiz raiz) {
+
+	// Pido memoria para los títulos
+	for (size_t i = 0; i < 10; i++)
+		matriz[i][0] = malloc (sizeof(char) * 5);
+
+	// Pido memoria para los datos
+	for (size_t i = 0; i < TAMMATRIZX; i++)
+		for (size_t j = 0; j < TAMMATRIZY; j++)
+			matriz[i][j] = malloc (sizeof(char) * 30);
+
+	// titulos
+	strcpy (matriz[0][0], "k");
+	strcpy (matriz[1][0], "aK");
+	strcpy (matriz[2][0], "bK");
+	strcpy (matriz[3][0], "f(aK)");
+	strcpy (matriz[4][0], "f(bK)");
+	strcpy (matriz[5][0], "rK+1");
+	strcpy (matriz[6][0], "Delta rK+1");
+	strcpy (matriz[7][0], "Delta r/r");
+	strcpy (matriz[8][0], "Lambda");
+	strcpy (matriz[9][0], "Rho");
+
+	if (raiz.k < TAMMATRIZY - 1)
+		cargarMatrizRedondeadaCompleta (matriz, raiz);
+	else
+		cargarMatrizRedondeadaIncompleta (matriz, raiz);
+
+}
+
+// Busca el largo del elemento mas largo de cada columna
+void calcularAnchoColumnas (int anchos[TAMMATRIZX], char * matriz[TAMMATRIZX][TAMMATRIZY], int k) {
+
+	for (int i = 0; i < TAMMATRIZX; i++)
+		anchos[i] = 0;
+
+	for (int i = 0; i < TAMMATRIZX; i++) {
+		for (int j = 0; j < TAMMATRIZY && j <= k; j++) {
+			if (strlen (matriz[i][j]) > anchos[i])
+				anchos[i] = strlen (matriz[i][j]);
+		}
+	}
+
+}
+
+// Imprime línea entre filas
+void imprimirLineaSeparadora (int anchos[TAMMATRIZX]) {
+
+	int i = 0;
+	int anchoTotal = 0;
+
+	for (int j = 0; j < TAMMATRIZX; j++)
+		anchoTotal = anchoTotal + anchos[j];
+
+	anchoTotal = anchoTotal + TAMMATRIZX * 3; // Tamaño separador
+
+	printf ("\n");
+
+	while (i <= anchoTotal) {
+		printf ("-");
+
+		i++;
+	}
+
+	printf ("\n");
+
+}
+
+// Imprime espacios y un separador
+void imprimirSeparador (int anchoElemento, int anchoColumna) {
+
+	int aux = anchoElemento;
+
+	while (aux < anchoColumna) {
+		printf (" ");
+
+		aux++;
+	}
+
+	printf (" | ");
+
+}
+
+// Imprime matriz de strings agregando separadores
+void imprimirMatriz (char * matriz[TAMMATRIZX][TAMMATRIZY], int k) {
+
+	int anchos[TAMMATRIZX];
+
+	calcularAnchoColumnas (anchos, matriz, k);
+
+	for (int j = 0; j < TAMMATRIZY && j <= k; j++) {
+		for (int i = 0; i < TAMMATRIZX; i++) {
+			printf ("%s", matriz[i][j]);
+
+			if (i != TAMMATRIZX - 1)
+				imprimirSeparador (strlen (matriz[i][j]), anchos[i]);
+		}
+
+		if (j != TAMMATRIZY - 1 && j <= k - 1)
+			imprimirLineaSeparadora (anchos);
+	}
+
+	printf("\n");
+
+}
+
+// Calcula datos y manda a imprimir
+void imprimirRaicesMetodoArranque (TListaSimple raices) {
+
+	int aux = L_Mover_Cte (& raices, L_Primero);
+
+	while (aux == TRUE) {
+		char * matrizRedondeada[TAMMATRIZX][TAMMATRIZY];
+
+		struct TRaiz raiz;
+		L_Elem_Cte (raices, & raiz);
+
+		cargarMatrizRedondeada (matrizRedondeada, raiz);
+
+		imprimirMatriz (matrizRedondeada, raiz.k);
+
+		//liberarMemoriaMatriz (matrizRedondeada);
+
+		aux = L_Mover_Cte (& raices, L_Siguiente);
+	}
+
+}
+
 void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 
 	TListaSimple raices;
@@ -577,11 +743,12 @@ void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 	switch (opcion) {
 		case 1:
 			datos.masaParticula = 0;
+
 			buscarTodasRaices (& raices, datos, RegulaFalsi);
 			filtrarRaices (& raices, opcion);
-			//imprimirRaicesMetodoArranque (raices);
-
+			imprimirRaicesMetodoArranque (raices);
 			limpiarRaices (& raices);
+
 			break;
 	}
 
