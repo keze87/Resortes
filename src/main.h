@@ -1,6 +1,8 @@
 #define  TRUE 0
 #define  FALSE 1
 
+typedef int make_iso_compilers_happy;
+
 struct TElemRaiz {
 
 	int k;
@@ -86,12 +88,14 @@ int L_Mover_Cte (TListaSimple * pLs, TMovimiento_Ls M);
 void L_Vaciar (TListaSimple * pLs);
 
 int proceso ();
-struct TVectorDatos cargarVectorDatos ();
-TListaSimple buscarRaizDentroDeIntervaloMetodoArranque (struct TVectorDatos datos, struct TIntervalos intervalo,
-						int (* metodo)(struct retornoMetodo *,double,double,struct TVectorDatos));
-TListaSimple buscarRaizDentroDeIntervaloMetodoDeConv (struct TVectorDatos datos, struct TIntervalos intervalo,
-						int (* metodo)(struct retornoMetodo *,double,double,struct TVectorDatos));
-int regulaFalsi (struct retornoMetodo * retornoMetodo, double intervaloMin, double intervaloMax, struct TVectorDatos datos);
 double funcion (struct TVectorDatos d, double y);
+struct TVectorDatos cargarVectorDatos ();
+struct TRaiz buscarRaizDentroDeIntervaloMetodoArranque (struct TVectorDatos datos, struct TIntervalos intervalo,
+						int (* metodo)(double *,double *,double *,double *,struct TVectorDatos));
+struct TRaiz buscarRaizDentroDeIntervaloMetodoDeConv (struct TVectorDatos datos, struct TIntervalos intervalo,
+						int (* metodo)(double *,double *,struct TVectorDatos));
+int regulaFalsi (double * raiz, double * errorAbs, double * intervaloMin, double * intervaloMax, struct TVectorDatos datos);
+int newtonRaphson (double * semilla, double * errorAbs, struct TVectorDatos datos);
+int puntoFijo (double * semilla, double * errorAbs, struct TVectorDatos datos);
 void buscarTodasRaices (TListaSimple * raices, struct TVectorDatos datos, EMetodos metodo);
 void limpiarRaices (TListaSimple * raices);

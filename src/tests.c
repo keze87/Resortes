@@ -18,6 +18,7 @@ TEST testCargarDatos (void) {
 
 TEST testBuscarRaiz (void) {
 
+	// RegulaFalsi
 	// Masa = m0
 	struct TVectorDatos datos = cargarVectorDatos ();
 
@@ -25,14 +26,14 @@ TEST testBuscarRaiz (void) {
 	intervalo.intervaloMin = -3;
 	intervalo.intervaloMax = 0;
 
-	TListaSimple raiz = buscarRaizDentroDeIntervaloMetodoArranque (datos, intervalo, regulaFalsi);
-	GREATEST_ASSERT (L_Vacia (raiz) == FALSE);
+	struct TRaiz raiz = buscarRaizDentroDeIntervaloMetodoArranque (datos, intervalo, regulaFalsi);
+	GREATEST_ASSERT (L_Vacia (raiz.iteraciones) == FALSE);
 
 	struct TElemRaiz elemRaiz;
-	L_Elem_Cte (raiz, & elemRaiz); // Solo me fijo en el resultado
+	L_Elem_Cte (raiz.iteraciones, & elemRaiz); // Solo me fijo en el resultado
 	GREATEST_ASSERT_IN_RANGE (-2.391638050447, elemRaiz.raiz, 0.0000005);
 
-	L_Vaciar (& raiz);
+	L_Vaciar (& raiz.iteraciones);
 
 	// Masa = 0
 	datos = cargarVectorDatos ();
@@ -42,12 +43,42 @@ TEST testBuscarRaiz (void) {
 	intervalo.intervaloMax = +1.5;
 
 	raiz = buscarRaizDentroDeIntervaloMetodoArranque (datos, intervalo, regulaFalsi);
-	GREATEST_ASSERT (L_Vacia (raiz) == FALSE);
+	GREATEST_ASSERT (L_Vacia (raiz.iteraciones) == FALSE);
 
-	L_Elem_Cte (raiz, & elemRaiz); // Solo me fijo en el resultado
+	L_Elem_Cte (raiz.iteraciones, & elemRaiz); // Solo me fijo en el resultado
 	GREATEST_ASSERT_IN_RANGE (0, elemRaiz.raiz, 0.0000005);
 
-	L_Vaciar (& raiz);
+	L_Vaciar (& raiz.iteraciones);
+
+	// Newton
+	// Masa = m0
+	datos = cargarVectorDatos ();
+
+	intervalo.intervaloMin = -2.4;
+	intervalo.intervaloMax = -2.3;
+
+	raiz = buscarRaizDentroDeIntervaloMetodoDeConv (datos, intervalo, newtonRaphson);
+	GREATEST_ASSERT (L_Vacia (raiz.iteraciones) == FALSE);
+
+	L_Elem_Cte (raiz.iteraciones, & elemRaiz); // Solo me fijo en el resultado
+	GREATEST_ASSERT_IN_RANGE (-2.391638050447, elemRaiz.raiz, 0.0000005);
+
+	L_Vaciar (& raiz.iteraciones);
+
+	// Masa = 0
+	datos = cargarVectorDatos ();
+	datos.masaParticula = 0;
+
+	intervalo.intervaloMin = -1;
+	intervalo.intervaloMax = +1.5;
+
+	raiz = buscarRaizDentroDeIntervaloMetodoDeConv (datos, intervalo, newtonRaphson);
+	GREATEST_ASSERT (L_Vacia (raiz.iteraciones) == FALSE);
+
+	L_Elem_Cte (raiz.iteraciones, & elemRaiz); // Solo me fijo en el resultado
+	GREATEST_ASSERT_IN_RANGE (0, elemRaiz.raiz, 0.0000005);
+
+	L_Vaciar (& raiz.iteraciones);
 	PASS ();
 
 }
