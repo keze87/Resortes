@@ -324,7 +324,8 @@ struct TRaiz {
 
 double funcion (struct TVectorDatos d, double y) {
 
-	double raiz = sqrt (y * y + d.distEntreExtremosFijos * d.distEntreExtremosFijos);
+	//double raiz = sqrt (y * y + d.distEntreExtremosFijos * d.distEntreExtremosFijos);
+	double raiz = sqrt (pow (y, 2) + pow (d.distEntreExtremosFijos, 2));
 	double division = d.longitudNatural / raiz;
 
 	return -2 * d.constElastica * y * (1 - division) - d.masaParticula * 9.81;
@@ -527,8 +528,7 @@ int newtonRaphson (double * semilla, double * errorAbs, struct TVectorDatos dato
 		return FALSE;
 
 	* semilla = XiMas1;
-	//TODO ?
-	* errorAbs = fabs (XiMas1 - Xi);
+	* errorAbs = fabs (XiMas1 - Xi); //TODO ?
 
 	return TRUE;
 
@@ -537,7 +537,6 @@ int newtonRaphson (double * semilla, double * errorAbs, struct TVectorDatos dato
 // g(x) = x - f(x)
 int puntoFijo (double * semilla, double * errorAbs, struct TVectorDatos datos) {
 
-	double XiMas1;
 	double Xi = * semilla;
 
 	double resultadoDerivada = funcionDerivada (datos, Xi);
@@ -545,7 +544,7 @@ int puntoFijo (double * semilla, double * errorAbs, struct TVectorDatos datos) {
 	if (fabs (resultadoDerivada) > 1)
 		return FRACASO;
 
-	XiMas1 = Xi - funcion (datos, Xi);
+	double XiMas1 = Xi - funcion (datos, Xi);
 
 	if (fabs (XiMas1 - Xi) < ERRORMIN)
 		return FALSE;
@@ -1051,6 +1050,8 @@ void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 				limpiarRaices (& raices);
 			}
 
+			L_Vaciar (& intervalosDeRaices);
+
 			break;
 
 		case 2:
@@ -1084,14 +1085,74 @@ void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 				limpiarRaices (& raices);
 			}
 
+			L_Vaciar (& intervalosDeRaices);
+
+			break;
+
+		case 4:
+			printf ("Newton Raphson:\n\n");
+			printf ("m=0.6*m0\n\n");
+
+			datos.masaParticula = datos.masaParticula * 0.6;
+			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
+
+			buscarTodasRaices (& raices, datos, NewtonRaphson, intervalosDeRaices);
+
+			if (L_Vacia (raices) == FALSE) {
+				filtrarRaices (& raices, opcion);
+				imprimirRaicesMetodoDeConv (raices);
+				limpiarRaices (& raices);
+			}
+
+			L_Vaciar (& intervalosDeRaices);
+
+			printf ("m=0.9*m0\n\n");
+
+			datos.masaParticula = datos.masaParticula * 0.9;
+			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
+
+			buscarTodasRaices (& raices, datos, NewtonRaphson, intervalosDeRaices);
+
+			if (L_Vacia (raices) == FALSE) {
+				filtrarRaices (& raices, opcion);
+				imprimirRaicesMetodoDeConv (raices);
+				limpiarRaices (& raices);
+			}
+
+			L_Vaciar (& intervalosDeRaices);
+
+			printf ("m=1.2*m0\n\n");
+
+			datos.masaParticula = datos.masaParticula * 1.2;
+			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
+
+			buscarTodasRaices (& raices, datos, NewtonRaphson, intervalosDeRaices);
+
+			if (L_Vacia (raices) == FALSE) {
+				filtrarRaices (& raices, opcion);
+				imprimirRaicesMetodoDeConv (raices);
+				limpiarRaices (& raices);
+			}
+
+			L_Vaciar (& intervalosDeRaices);
+
+			printf ("m=1.5*m0\n\n");
+
+			datos.masaParticula = datos.masaParticula * 1.5;
+			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
+
+			buscarTodasRaices (& raices, datos, NewtonRaphson, intervalosDeRaices);
+
+			if (L_Vacia (raices) == FALSE) {
+				filtrarRaices (& raices, opcion);
+				imprimirRaicesMetodoDeConv (raices);
+				limpiarRaices (& raices);
+			}
+
+			L_Vaciar (& intervalosDeRaices);
+
 			break;
 	}
-
-	//buscarRaices (& raices, datos);
-	//filtrarRaices(raices,opcion)
-	//imprimirTabla(raices)
-	//LimpiarLista
-	//repetir con PF y NR
 
 }
 
@@ -1108,7 +1169,8 @@ int proceso () {
 	/*imprimirEnunciado (3);
 	buscarPuntosDeEquilibrio (datos, 3);*/
 
-	//imprimirEnunciado (4);
+	imprimirEnunciado (4);
+	buscarPuntosDeEquilibrio (datos, 4);
 
 	return TRUE;
 
