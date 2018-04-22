@@ -14,7 +14,7 @@
 #define MAXRAICES 10
 #define MINDIVISOR 1E-16
 #define h 0.000001
-#define ERRORMIN 5E-16
+#define ERRORMIN 5E-14 //TODO: tiene que ser mas?
 
 void imprimirEnunciado (char enunciado) {
 
@@ -138,7 +138,7 @@ void L_Elem_Cte (TListaSimple Ls, void * pE) {
 
 /**
  * L_MOVER_CTE
- * Pre: Ls creada y no vacia.
+ * Pre: Ls creada
  * Post: Si Ls esta vacia, devuelve FALSE. Sino:
  * Si M = L_Primero, el nuevo elemento Corriente es el Primero. Devuelve TRUE
  * Si M = L_Siguiente, el nuevo elemento Corriente es el Siguiente al
@@ -147,6 +147,9 @@ void L_Elem_Cte (TListaSimple Ls, void * pE) {
  * Corriente. Si estaba en el primer elemento, devuelve FALSE, sino TRUE.
  */
 int L_Mover_Cte (TListaSimple * pLs, TMovimiento_Ls M) {
+
+	if (L_Vacia (* pLs) == TRUE)
+		return FALSE;
 
 	switch (M) {
 		case L_Primero:
@@ -344,14 +347,14 @@ void buscarIntervalosDeRaices (struct TVectorDatos datos, TListaSimple * interva
 
 	// TODO: funcion = 0?
 	while (y < 10.1 * datos.longitudNatural) {
-		if (funcion (datos, y) * funcion (datos, y + 0.05) < 0) {
+		if (funcion (datos, y) * funcion (datos, y + 0.5) < 0) {
 			aux.intervaloMin = y;
-			aux.intervaloMax = y + 0.05;
+			aux.intervaloMax = y + 0.5;
 
 			L_Insertar_Cte (intervalos, L_Siguiente, & aux);
 		}
 
-		y += 0.05;
+		y += 0.5;
 	}
 
 }
@@ -422,6 +425,11 @@ struct TRaiz buscarRaizDentroDeIntervaloMetodoDeConv (struct TVectorDatos datos,
 		aux = metodo (& elemIteracionK.raiz, & elemIteracionK.errorAbs, datos);
 	}
 
+	if (aux == FRACASO) {
+		tabla.raiz = FRACASO;
+		return tabla;
+	}
+
 	tabla.raiz = elemIteracionK.raiz;
 	tabla.errorAbs = elemIteracionK.errorAbs;
 	tabla.k = elemIteracionK.k;
@@ -478,22 +486,20 @@ struct TRaiz buscarRaizDentroDeIntervaloMetodoArranque (struct TVectorDatos dato
 
 int regulaFalsi (double * raiz, double * errorAbs, double * intervaloMin, double * intervaloMax, struct TVectorDatos datos) {
 
-	double puntoMedio;
-
 	//TODO: definir error
-	if (* intervaloMin >= * intervaloMax)
+	if ( (* intervaloMin >= * intervaloMax) || (fabs (* intervaloMin - * intervaloMax) < ERRORMIN) )
 		return FALSE;
 
-	if (funcion (datos, * intervaloMin) * funcion (datos, * intervaloMax) >= 0)
+	double funcMin = funcion (datos, * intervaloMin);
+	double funcMax = funcion (datos, * intervaloMax);
+
+	if (funcMin * funcMax >= 0)
 		return FALSE;
 
-	if (fabs (* intervaloMin - * intervaloMax) < ERRORMIN)
-		return FALSE;
+	//double puntoMedio = * intervaloMin - funcMin * (* intervaloMax - * intervaloMin) / (funcMax - funcMin);
+	double puntoMedio = (* intervaloMin * funcMax - * intervaloMax * funcMin) / (funcMax - funcMin);
 
-	puntoMedio = * intervaloMin - funcion (datos, * intervaloMin) * (* intervaloMax - * intervaloMin) / \
-											(funcion (datos, * intervaloMax) - funcion (datos, * intervaloMin));
-
-	if (funcion (datos, * intervaloMin) * funcion (datos, puntoMedio) < 0)
+	if (funcMin * funcion (datos, puntoMedio) < 0)
 		* intervaloMax = puntoMedio;
 	else
 		* intervaloMin = puntoMedio;
@@ -524,7 +530,7 @@ int newtonRaphson (double * semilla, double * errorAbs, struct TVectorDatos dato
 	//TODO ?
 	* errorAbs = fabs (XiMas1 - Xi);
 
-	return TRUE;;
+	return TRUE;
 
 }
 
@@ -536,8 +542,8 @@ int puntoFijo (double * semilla, double * errorAbs, struct TVectorDatos datos) {
 
 	double resultadoDerivada = funcionDerivada (datos, Xi);
 
-	if (fabs (resultadoDerivada) < MINDIVISOR)
-		return FALSE;
+	if (fabs (resultadoDerivada) > 1)
+		return FRACASO;
 
 	XiMas1 = Xi - funcion (datos, Xi);
 
@@ -551,12 +557,9 @@ int puntoFijo (double * semilla, double * errorAbs, struct TVectorDatos datos) {
 
 }
 
-void buscarTodasRaices (TListaSimple * raices, struct TVectorDatos datos, EMetodos metodo) {
+void buscarTodasRaices (TListaSimple * raices, struct TVectorDatos datos, EMetodos metodo, TListaSimple intervalosDeRaices) {
 
 	L_Crear (raices, sizeof(struct TRaiz));
-
-	TListaSimple intervalosDeRaices;
-	buscarIntervalosDeRaices (datos, & intervalosDeRaices);
 
 	int aux = L_Mover_Cte (& intervalosDeRaices, L_Primero);
 
@@ -577,12 +580,13 @@ void buscarTodasRaices (TListaSimple * raices, struct TVectorDatos datos, EMetod
 				break;
 		}
 
-		L_Insertar_Cte (raices, L_Siguiente, & raiz);
+		if (raiz.raiz != FRACASO)
+			L_Insertar_Cte (raices, L_Siguiente, & raiz);
+		else
+			L_Vaciar (& raiz.iteraciones);
 
 		aux = L_Mover_Cte (& intervalosDeRaices, L_Siguiente);
 	}
-
-	L_Vaciar (& intervalosDeRaices);
 
 }
 
@@ -698,6 +702,7 @@ void cargarMatrizRedondeadaMetodoArranqueIncompleta (char * matriz[TAMMATRIZX][T
 	while (aux == TRUE)
 		aux = L_Mover_Cte (& raiz.iteraciones, L_Siguiente);
 
+	aux = TRUE;
 	y = TAMMATRIZY - 1;
 	while (aux == TRUE && y > TAMMATRIZY / 2) {
 		struct TElemRaiz iteracion;
@@ -826,6 +831,7 @@ void cargarMatrizRedondeadaMetodoDeConvIncompleta (char * matriz[TAMMATRIZX][TAM
 	while (aux == TRUE)
 		aux = L_Mover_Cte (& raiz.iteraciones, L_Siguiente);
 
+	aux = TRUE;
 	y = TAMMATRIZY - 1;
 	while (aux == TRUE && y > TAMMATRIZY / 2) {
 		struct TElemRaiz iteracion;
@@ -857,11 +863,11 @@ void cargarMatrizRedondeadaMetodoDeConvIncompleta (char * matriz[TAMMATRIZX][TAM
 void cargarMatrizRedondeadaMetodoDeConv (char * matriz[TAMMATRIZX][TAMMATRIZY], struct TRaiz raiz) {
 
 	// Pido memoria para los títulos
-	for (size_t i = 0; i < TAMMATRIZXCONV; i++)
+	for (size_t i = 0; i < TAMMATRIZX; i++)
 		matriz[i][0] = malloc (sizeof(char) * 5);
 
 	// Pido memoria para los datos
-	for (size_t i = 0; i < TAMMATRIZXCONV; i++)
+	for (size_t i = 0; i < TAMMATRIZX; i++)
 		for (size_t j = 0; j < TAMMATRIZY; j++)
 			matriz[i][j] = malloc (sizeof(char) * 30);
 
@@ -886,8 +892,6 @@ void calcularAnchoColumnas (int anchos[TAMMATRIZX], char * matriz[TAMMATRIZX][TA
 	for (int i = 0; i < tamanioX; i++)
 		anchos[i] = 0;
 
-	/*for (int i = 0; i < x; i++) {
-		for (int j = 0; j < TAMMATRIZY && j <= k + 1; j++) {*/
 	for (int j = 0; j < TAMMATRIZY && j <= tamanioY; j++) {
 		for (int i = 0; i < TAMMATRIZX && i < tamanioX; i++) {
 			if (strlen (matriz[i][j]) > anchos[i])
@@ -954,14 +958,14 @@ void imprimirMatriz (char * matriz[TAMMATRIZX][TAMMATRIZY], int tamanioY, int ta
 			imprimirLineaSeparadora (anchos, tamanioX);
 	}
 
-	printf("\n");
+	printf ("\n\n");
 
 }
 
-void liberarMemoriaMatriz (char * matriz[TAMMATRIZX][TAMMATRIZY], int tamanioX) {
+void liberarMemoriaMatriz (char * matriz[TAMMATRIZX][TAMMATRIZY]) {
 
 	// TODO: TAMMATRIZY?
-	for (int i = 0; i < tamanioX; i++)
+	for (int i = 0; i < TAMMATRIZX; i++)
 		for (int j = 0; j < TAMMATRIZY; j++)
 			free (matriz[i][j]);
 
@@ -982,7 +986,7 @@ void imprimirRaicesMetodoArranque (TListaSimple raices) {
 
 		imprimirMatriz (matrizRedondeada, raiz.k, TAMMATRIZX);
 
-		liberarMemoriaMatriz (matrizRedondeada, TAMMATRIZX);
+		liberarMemoriaMatriz (matrizRedondeada);
 
 		aux = L_Mover_Cte (& raices, L_Siguiente);
 	}
@@ -1003,7 +1007,7 @@ void imprimirRaicesMetodoDeConv (TListaSimple raices) {
 
 		imprimirMatriz (matrizRedondeada, raiz.k, TAMMATRIZXCONV);
 
-		liberarMemoriaMatriz (matrizRedondeada, TAMMATRIZXCONV);
+		liberarMemoriaMatriz (matrizRedondeada);
 
 		aux = L_Mover_Cte (& raices, L_Siguiente);
 	}
@@ -1013,31 +1017,72 @@ void imprimirRaicesMetodoDeConv (TListaSimple raices) {
 void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 
 	TListaSimple raices;
+	TListaSimple intervalosDeRaices;
 
 	switch (opcion) {
 		case 1:
 			datos.masaParticula = 0;
+			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
 
-			printf ("Regula Falsi:\n");
+			printf ("Regula Falsi:\n\n");
+			buscarTodasRaices (& raices, datos, RegulaFalsi, intervalosDeRaices);
 
-			buscarTodasRaices (& raices, datos, RegulaFalsi);
-			filtrarRaices (& raices, opcion);
-			imprimirRaicesMetodoArranque (raices);
-			limpiarRaices (& raices);
+			if (L_Vacia (raices) == FALSE) {
+				filtrarRaices (& raices, opcion);
+				imprimirRaicesMetodoArranque (raices);
+				limpiarRaices (& raices);
+			}
 
-			/*printf ("Punto Fijo:\n");
+			printf ("Punto Fijo:\n\n");
+			buscarTodasRaices (& raices, datos, PuntoFijo, intervalosDeRaices);
 
-			buscarTodasRaices (& raices, datos, PuntoFijo);
-			filtrarRaices (& raices, opcion);
-			imprimirRaicesMetodoDeConv (raices);
-			limpiarRaices (& raices);*/
+			if (L_Vacia (raices) == FALSE) {
+				filtrarRaices (& raices, opcion);
+				imprimirRaicesMetodoDeConv (raices);
+				limpiarRaices (& raices);
+			}
 
-			printf ("Newton Raphson:\n");
+			printf ("Newton Raphson:\n\n");
+			buscarTodasRaices (& raices, datos, NewtonRaphson, intervalosDeRaices);
 
-			buscarTodasRaices (& raices, datos, NewtonRaphson);
-			filtrarRaices (& raices, opcion);
-			imprimirRaicesMetodoDeConv (raices);
-			limpiarRaices (& raices);
+			if (L_Vacia (raices) == FALSE) {
+				filtrarRaices (& raices, opcion);
+				imprimirRaicesMetodoDeConv (raices);
+				limpiarRaices (& raices);
+			}
+
+			break;
+
+		case 2:
+			datos.masaParticula = datos.masaParticula * 0.3;
+			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
+
+			printf ("Regula Falsi:\n\n");
+			buscarTodasRaices (& raices, datos, RegulaFalsi, intervalosDeRaices);
+
+			if (L_Vacia (raices) == FALSE) {
+				filtrarRaices (& raices, opcion);
+				imprimirRaicesMetodoArranque (raices);
+				limpiarRaices (& raices);
+			}
+
+			printf ("Punto Fijo:\n\n");
+			buscarTodasRaices (& raices, datos, PuntoFijo, intervalosDeRaices);
+
+			if (L_Vacia (raices) == FALSE) {
+				filtrarRaices (& raices, opcion);
+				imprimirRaicesMetodoDeConv (raices);
+				limpiarRaices (& raices);
+			}
+
+			printf ("Newton Raphson:\n\n");
+			buscarTodasRaices (& raices, datos, NewtonRaphson, intervalosDeRaices);
+
+			if (L_Vacia (raices) == FALSE) {
+				filtrarRaices (& raices, opcion);
+				imprimirRaicesMetodoDeConv (raices);
+				limpiarRaices (& raices);
+			}
 
 			break;
 	}
@@ -1057,9 +1102,11 @@ int proceso () {
 	imprimirEnunciado (1);
 	buscarPuntosDeEquilibrio (datos, 1);
 
-	//imprimirEnunciado (2);
+	imprimirEnunciado (2);
+	buscarPuntosDeEquilibrio (datos, 2);
 
-	//imprimirEnunciado (3);
+	/*imprimirEnunciado (3);
+	buscarPuntosDeEquilibrio (datos, 3);*/
 
 	//imprimirEnunciado (4);
 

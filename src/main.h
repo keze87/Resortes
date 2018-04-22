@@ -1,7 +1,7 @@
 #define  TRUE 0
 #define  FALSE 1
 
-typedef int make_iso_compilers_happy;
+//typedef int make_iso_compilers_happy;
 
 struct TElemRaiz {
 
@@ -97,5 +97,6 @@ struct TRaiz buscarRaizDentroDeIntervaloMetodoDeConv (struct TVectorDatos datos,
 int regulaFalsi (double * raiz, double * errorAbs, double * intervaloMin, double * intervaloMax, struct TVectorDatos datos);
 int newtonRaphson (double * semilla, double * errorAbs, struct TVectorDatos datos);
 int puntoFijo (double * semilla, double * errorAbs, struct TVectorDatos datos);
-void buscarTodasRaices (TListaSimple * raices, struct TVectorDatos datos, EMetodos metodo);
+void buscarIntervalosDeRaices (struct TVectorDatos datos, TListaSimple * intervalos);
+void buscarTodasRaices (TListaSimple * raices, struct TVectorDatos datos, EMetodos metodo, TListaSimple intervalosDeRaices);
 void limpiarRaices (TListaSimple * raices);

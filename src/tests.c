@@ -85,12 +85,14 @@ TEST testBuscarRaiz (void) {
 
 TEST testBuscarRaices (void) {
 
-	//void buscarTodasRaices (TListaSimple * raices, struct TVectorDatos datos, EMetodos metodo)
-
-	printf ("m=m0\n");
 	struct TVectorDatos datos = cargarVectorDatos ();
 	TListaSimple raices;
-	buscarTodasRaices (& raices, datos, RegulaFalsi); // TODO: otros metodos?
+
+	TListaSimple intervalosDeRaices;
+	buscarIntervalosDeRaices (datos, & intervalosDeRaices);
+
+	printf ("m=m0\n");
+	buscarTodasRaices (& raices, datos, RegulaFalsi, intervalosDeRaices); // TODO: otros metodos?
 
 	GREATEST_ASSERT (L_Vacia (raices) == FALSE);
 
@@ -101,11 +103,13 @@ TEST testBuscarRaices (void) {
 	GREATEST_ASSERT (L_Mover_Cte (& raices, L_Siguiente) == FALSE); // Una sola raiz
 
 	limpiarRaices (& raices);
+	L_Vaciar (& intervalosDeRaices);
 
 	printf ("m=0\n");
 	datos.masaParticula = 0;
+	buscarIntervalosDeRaices (datos, & intervalosDeRaices);
 
-	buscarTodasRaices (& raices, datos, RegulaFalsi); // TODO: otros metodos?
+	buscarTodasRaices (& raices, datos, RegulaFalsi, intervalosDeRaices); // TODO: otros metodos?
 
 	GREATEST_ASSERT (L_Vacia (raices) == FALSE);
 
@@ -118,6 +122,7 @@ TEST testBuscarRaices (void) {
 	GREATEST_ASSERT (L_Mover_Cte (& raices, L_Siguiente) == FALSE); // 3 raices
 
 	limpiarRaices (& raices);
+	L_Vaciar (& intervalosDeRaices);
 	PASS ();
 
 }

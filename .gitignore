@@ -1,6 +1,7 @@
 .vscode/
 .atom-dbg.cson
 .buildconfig
+.cquery
 main
 CT29
 
