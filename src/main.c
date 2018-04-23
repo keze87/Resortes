@@ -49,7 +49,7 @@ void imprimirEnunciado (char enunciado) {
  * Movimientos que va a manejar la estructura. Son de conocimiento público,
  * pero sólo deberían usarse para el manejo puntual de esta estructura.
  */
-typedef enum {
+typedef enum TMovimiento_Ls {
 
 	L_Primero,
 	L_Siguiente,
@@ -72,7 +72,7 @@ typedef struct TNodoListaSimple {
  * Estructura cabecera, este es el tipo que se deberá instanciar, aunque
  * nunca acceder a sus campos.
  */
-typedef struct {
+typedef struct TListaSimple {
 
 	TNodoListaSimple * Primero, * Corriente;
 	int TamanioDato;
@@ -219,7 +219,7 @@ void L_Borrar_Cte (TListaSimple * pLs) {
  */
 int L_Insertar_Cte (TListaSimple * pLs, TMovimiento_Ls M, void * pE) {
 
-	TNodoListaSimple * pNodo = (TNodoListaSimple *) malloc (sizeof(TNodoListaSimple));
+	TNodoListaSimple * pNodo = (TNodoListaSimple *) malloc (sizeof (TNodoListaSimple));
 
 	if (!pNodo)
 		return FALSE; // No hay memoria disponible
@@ -261,7 +261,7 @@ int L_Insertar_Cte (TListaSimple * pLs, TMovimiento_Ls M, void * pE) {
 
 }
 
-typedef enum {
+typedef enum EMetodos {
 
 	NewtonRaphson,
 	RegulaFalsi,
@@ -340,7 +340,7 @@ double funcionDerivada (struct TVectorDatos d, double y) {
 
 void buscarIntervalosDeRaices (struct TVectorDatos datos, TListaSimple * intervalos) {
 
-	L_Crear (intervalos, sizeof(struct TIntervalos));
+	L_Crear (intervalos, sizeof (struct TIntervalos));
 
 	struct TIntervalos aux;
 
@@ -396,7 +396,7 @@ struct TRaiz buscarRaizDentroDeIntervaloMetodoDeConv (struct TVectorDatos datos,
 
 	struct TRaiz tabla;
 
-	L_Crear (& tabla.iteraciones, sizeof(struct TElemRaiz));
+	L_Crear (& tabla.iteraciones, sizeof (struct TElemRaiz));
 
 	struct TElemRaiz elemIteracionK;
 
@@ -404,11 +404,11 @@ struct TRaiz buscarRaizDentroDeIntervaloMetodoDeConv (struct TVectorDatos datos,
 	elemIteracionK.raiz = (intervalo.intervaloMin + intervalo.intervaloMax) / 2;
 
 	int aux = TRUE;
-	while (aux == TRUE && elemIteracionK.k < MAXITERACIONES) {
+	while ((aux == TRUE) && (elemIteracionK.k < MAXITERACIONES)) {
 		if (elemIteracionK.k == 0)
 			elemIteracionK.errorAbs = FRACASO;
 
-		if (elemIteracionK.raiz != 0 && elemIteracionK.errorAbs != FRACASO)
+		if ((elemIteracionK.raiz != 0) && (elemIteracionK.errorAbs != FRACASO))
 			elemIteracionK.errorRel = fabs (elemIteracionK.errorAbs / elemIteracionK.raiz);
 		else
 			elemIteracionK.errorRel = FRACASO;
@@ -444,7 +444,7 @@ struct TRaiz buscarRaizDentroDeIntervaloMetodoArranque (struct TVectorDatos dato
 
 	struct TRaiz tabla;
 
-	L_Crear (& tabla.iteraciones, sizeof(struct TElemRaiz));
+	L_Crear (& tabla.iteraciones, sizeof (struct TElemRaiz));
 
 	struct TElemRaiz elemIteracionK;
 
@@ -456,7 +456,7 @@ struct TRaiz buscarRaizDentroDeIntervaloMetodoArranque (struct TVectorDatos dato
 
 	int aux = metodo (& elemIteracionK.raiz, & elemIteracionK.errorAbs, & elemIteracionK.intervaloMin, & elemIteracionK.intervaloMax, datos);
 
-	while (aux == TRUE && elemIteracionK.k < MAXITERACIONES) {
+	while ((aux == TRUE) && (elemIteracionK.k < MAXITERACIONES)) {
 		if (elemIteracionK.raiz != 0)
 			elemIteracionK.errorRel = fabs (elemIteracionK.errorAbs / elemIteracionK.raiz);
 		else
@@ -488,7 +488,7 @@ struct TRaiz buscarRaizDentroDeIntervaloMetodoArranque (struct TVectorDatos dato
 int regulaFalsi (double * raiz, double * errorAbs, double * intervaloMin, double * intervaloMax, struct TVectorDatos datos) {
 
 	//TODO: definir error
-	if ( (* intervaloMin >= * intervaloMax) || (fabs (* intervaloMin - * intervaloMax) < ERRORMIN) )
+	if ((* intervaloMin >= * intervaloMax) || (fabs (* intervaloMin - * intervaloMax) < ERRORMIN))
 		return FALSE;
 
 	double funcMin = funcion (datos, * intervaloMin);
@@ -558,7 +558,7 @@ int puntoFijo (double * semilla, double * errorAbs, struct TVectorDatos datos) {
 
 void buscarTodasRaices (TListaSimple * raices, struct TVectorDatos datos, EMetodos metodo, TListaSimple intervalosDeRaices) {
 
-	L_Crear (raices, sizeof(struct TRaiz));
+	L_Crear (raices, sizeof (struct TRaiz));
 
 	int aux = L_Mover_Cte (& intervalosDeRaices, L_Primero);
 
@@ -638,7 +638,7 @@ void limpiarRaices (TListaSimple * raices) {
 void cargarMatrizRedondeadaMetodoArranqueCompleta (char * matriz[TAMMATRIZX][TAMMATRIZY], struct TRaiz raiz) {
 
 	int aux = L_Mover_Cte (& raiz.iteraciones, L_Primero);
-	int y = 1;
+	size_t y = 1;
 
 	while (aux == TRUE) {
 		struct TElemRaiz iteracion;
@@ -669,9 +669,9 @@ void cargarMatrizRedondeadaMetodoArranqueCompleta (char * matriz[TAMMATRIZX][TAM
 void cargarMatrizRedondeadaMetodoArranqueIncompleta (char * matriz[TAMMATRIZX][TAMMATRIZY], struct TRaiz raiz) {
 
 	int aux = L_Mover_Cte (& raiz.iteraciones, L_Primero);
-	int y = 1;
+	size_t y = 1;
 
-	while (aux == TRUE && y < TAMMATRIZY / 2) {
+	while ((aux == TRUE) && (y < TAMMATRIZY / 2)) {
 		struct TElemRaiz iteracion;
 		L_Elem_Cte (raiz.iteraciones, & iteracion);
 
@@ -703,7 +703,7 @@ void cargarMatrizRedondeadaMetodoArranqueIncompleta (char * matriz[TAMMATRIZX][T
 
 	aux = TRUE;
 	y = TAMMATRIZY - 1;
-	while (aux == TRUE && y > TAMMATRIZY / 2) {
+	while ((aux == TRUE) && (y > TAMMATRIZY / 2)) {
 		struct TElemRaiz iteracion;
 		L_Elem_Cte (raiz.iteraciones, & iteracion);
 
@@ -738,12 +738,12 @@ void cargarMatrizRedondeadaMetodoArranque (char * matriz[TAMMATRIZX][TAMMATRIZY]
 
 	// Pido memoria para los títulos
 	for (size_t i = 0; i < TAMMATRIZX; i++)
-		matriz[i][0] = malloc (sizeof(char) * 5);
+		matriz[i][0] = malloc (sizeof (char) * 5);
 
 	// Pido memoria para los datos
 	for (size_t i = 0; i < TAMMATRIZX; i++)
 		for (size_t j = 0; j < TAMMATRIZY; j++)
-			matriz[i][j] = malloc (sizeof(char) * 30);
+			matriz[i][j] = malloc (sizeof (char) * 30);
 
 	// titulos
 	strcpy (matriz[0][0], "k");
@@ -767,7 +767,7 @@ void cargarMatrizRedondeadaMetodoArranque (char * matriz[TAMMATRIZX][TAMMATRIZY]
 void cargarMatrizRedondeadaMetodoDeConvCompleta (char * matriz[TAMMATRIZX][TAMMATRIZY], struct TRaiz raiz) {
 
 	int aux = L_Mover_Cte (& raiz.iteraciones, L_Primero);
-	int y = 1;
+	size_t y = 1;
 
 	while (aux == TRUE) {
 		struct TElemRaiz iteracion;
@@ -798,9 +798,9 @@ void cargarMatrizRedondeadaMetodoDeConvCompleta (char * matriz[TAMMATRIZX][TAMMA
 void cargarMatrizRedondeadaMetodoDeConvIncompleta (char * matriz[TAMMATRIZX][TAMMATRIZY], struct TRaiz raiz) {
 
 	int aux = L_Mover_Cte (& raiz.iteraciones, L_Primero);
-	int y = 1;
+	size_t y = 1;
 
-	while (aux == TRUE && y < TAMMATRIZY / 2) {
+	while ((aux == TRUE) && (y < TAMMATRIZY / 2)) {
 		struct TElemRaiz iteracion;
 		L_Elem_Cte (raiz.iteraciones, & iteracion);
 
@@ -832,7 +832,7 @@ void cargarMatrizRedondeadaMetodoDeConvIncompleta (char * matriz[TAMMATRIZX][TAM
 
 	aux = TRUE;
 	y = TAMMATRIZY - 1;
-	while (aux == TRUE && y > TAMMATRIZY / 2) {
+	while ((aux == TRUE) && (y > TAMMATRIZY / 2)) {
 		struct TElemRaiz iteracion;
 		L_Elem_Cte (raiz.iteraciones, & iteracion);
 
@@ -863,12 +863,12 @@ void cargarMatrizRedondeadaMetodoDeConv (char * matriz[TAMMATRIZX][TAMMATRIZY], 
 
 	// Pido memoria para los títulos
 	for (size_t i = 0; i < TAMMATRIZX; i++)
-		matriz[i][0] = malloc (sizeof(char) * 5);
+		matriz[i][0] = malloc (sizeof (char) * 5);
 
 	// Pido memoria para los datos
 	for (size_t i = 0; i < TAMMATRIZX; i++)
 		for (size_t j = 0; j < TAMMATRIZY; j++)
-			matriz[i][j] = malloc (sizeof(char) * 30);
+			matriz[i][j] = malloc (sizeof (char) * 30);
 
 	// titulos
 	strcpy (matriz[0][0], "k");
@@ -886,13 +886,13 @@ void cargarMatrizRedondeadaMetodoDeConv (char * matriz[TAMMATRIZX][TAMMATRIZY], 
 }
 
 // Busca el largo del elemento mas largo de cada columna
-void calcularAnchoColumnas (int anchos[TAMMATRIZX], char * matriz[TAMMATRIZX][TAMMATRIZY], int tamanioY, int tamanioX) {
+void calcularAnchoColumnas (size_t anchos[TAMMATRIZX], char * matriz[TAMMATRIZX][TAMMATRIZY], int tamanioY, int tamanioX) {
 
-	for (int i = 0; i < tamanioX; i++)
+	for (size_t i = 0; i < tamanioX; i++)
 		anchos[i] = 0;
 
-	for (int j = 0; j < TAMMATRIZY && j <= tamanioY; j++) {
-		for (int i = 0; i < TAMMATRIZX && i < tamanioX; i++) {
+	for (size_t j = 0; (j < TAMMATRIZY) && (j <= tamanioY); j++) {
+		for (size_t i = 0; (i < TAMMATRIZX) && (i < tamanioX); i++) {
 			if (strlen (matriz[i][j]) > anchos[i])
 				anchos[i] = strlen (matriz[i][j]);
 		}
@@ -901,12 +901,12 @@ void calcularAnchoColumnas (int anchos[TAMMATRIZX], char * matriz[TAMMATRIZX][TA
 }
 
 // Imprime línea entre filas
-void imprimirLineaSeparadora (int anchos[TAMMATRIZX], int tamanioX) {
+void imprimirLineaSeparadora (size_t anchos[TAMMATRIZX], int tamanioX) {
 
-	int i = 0;
-	int anchoTotal = 0;
+	size_t i = 0;
+	size_t anchoTotal = 0;
 
-	for (int j = 0; j < tamanioX; j++)
+	for (size_t j = 0; j < tamanioX; j++)
 		anchoTotal = anchoTotal + anchos[j];
 
 	anchoTotal = anchoTotal + (tamanioX - 1) * 3; // Tamaño separador
@@ -926,7 +926,7 @@ void imprimirLineaSeparadora (int anchos[TAMMATRIZX], int tamanioX) {
 // Imprime espacios y un separador
 void imprimirSeparador (int anchoElemento, int anchoColumna) {
 
-	int aux = anchoElemento;
+	size_t aux = anchoElemento;
 
 	while (aux < anchoColumna) {
 		printf (" ");
@@ -941,19 +941,18 @@ void imprimirSeparador (int anchoElemento, int anchoColumna) {
 // Imprime matriz de strings agregando separadores
 void imprimirMatriz (char * matriz[TAMMATRIZX][TAMMATRIZY], int tamanioY, int tamanioX) {
 
-	int anchos[TAMMATRIZX];
-
+	size_t anchos[TAMMATRIZX];
 	calcularAnchoColumnas (anchos, matriz, tamanioY, tamanioX);
 
-	for (int j = 0; j < TAMMATRIZY && j <= tamanioY; j++) {
-		for (int i = 0; i < TAMMATRIZX && i < tamanioX; i++) {
+	for (size_t j = 0; (j < TAMMATRIZY) && (j <= tamanioY); j++) {
+		for (size_t i = 0; (i < TAMMATRIZX) && (i < tamanioX); i++) {
 			printf ("%s", matriz[i][j]);
 
 			if (i != tamanioX - 1)
 				imprimirSeparador (strlen (matriz[i][j]), anchos[i]);
 		}
 
-		if (j != TAMMATRIZY - 1 && j <= tamanioY - 1)
+		if ((j != TAMMATRIZY - 1) && (j <= tamanioY - 1))
 			imprimirLineaSeparadora (anchos, tamanioX);
 	}
 
@@ -963,10 +962,35 @@ void imprimirMatriz (char * matriz[TAMMATRIZX][TAMMATRIZY], int tamanioY, int ta
 
 void liberarMemoriaMatriz (char * matriz[TAMMATRIZX][TAMMATRIZY]) {
 
-	// TODO: TAMMATRIZY?
-	for (int i = 0; i < TAMMATRIZX; i++)
-		for (int j = 0; j < TAMMATRIZY; j++)
+	for (size_t i = 0; i < TAMMATRIZX; i++)
+		for (size_t j = 0; j < TAMMATRIZY; j++)
 			free (matriz[i][j]);
+
+}
+
+void imprimirRaiz (double raiz, double errorAbs) {
+
+	char * error = malloc (sizeof (char) * 29);
+	char * exp = malloc (sizeof (char) * 29);
+	char * errorString = malloc (sizeof (char) * 29);
+	snprintf (errorString, 29, "%.0e", errorAbs);
+
+	char * token = strtok (errorString, "e");
+
+	int errorInt = atoi (token) + 1;
+	snprintf (error, 29, "%d", errorInt);
+
+	token = strtok (NULL, "e");
+	strcpy (exp, token);
+
+	int expInt = atoi (exp);
+
+	// TODO expInt >= 0
+	printf ("Raiz = %.*lf +/- %s * 10^%s\n\n", - expInt - 1, raiz, error, exp);
+
+	free (error);
+	free (exp);
+	free (errorString);
 
 }
 
@@ -980,14 +1004,15 @@ void imprimirRaicesMetodoArranque (TListaSimple raices) {
 
 		struct TRaiz raiz;
 		L_Elem_Cte (raices, & raiz);
-
 		cargarMatrizRedondeadaMetodoArranque (matrizRedondeada, raiz);
 
 		imprimirMatriz (matrizRedondeada, raiz.k, TAMMATRIZX);
 
 		liberarMemoriaMatriz (matrizRedondeada);
-
 		aux = L_Mover_Cte (& raices, L_Siguiente);
+
+		imprimirRaiz (raiz.raiz, raiz.errorAbs);
+
 	}
 
 }
@@ -1001,14 +1026,15 @@ void imprimirRaicesMetodoDeConv (TListaSimple raices) {
 
 		struct TRaiz raiz;
 		L_Elem_Cte (raices, & raiz);
-
 		cargarMatrizRedondeadaMetodoDeConv (matrizRedondeada, raiz);
 
 		imprimirMatriz (matrizRedondeada, raiz.k, TAMMATRIZXCONV);
 
 		liberarMemoriaMatriz (matrizRedondeada);
-
 		aux = L_Mover_Cte (& raices, L_Siguiente);
+
+		imprimirRaiz (raiz.raiz, raiz.errorAbs);
+
 	}
 
 }
@@ -1055,7 +1081,7 @@ void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 			break;
 
 		case 2:
-			datos.masaParticula = datos.masaParticula * 0.3;
+			datos.masaParticula *= 0.3;
 			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
 
 			printf ("Regula Falsi:\n\n");
@@ -1092,8 +1118,7 @@ void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 		case 4:
 			printf ("Newton Raphson:\n\n");
 			printf ("m=0.6*m0\n\n");
-
-			datos.masaParticula = datos.masaParticula * 0.6;
+			datos.masaParticula *= 0.6;
 			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
 
 			buscarTodasRaices (& raices, datos, NewtonRaphson, intervalosDeRaices);
@@ -1107,8 +1132,7 @@ void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 			L_Vaciar (& intervalosDeRaices);
 
 			printf ("m=0.9*m0\n\n");
-
-			datos.masaParticula = datos.masaParticula * 0.9;
+			datos.masaParticula *= 0.9;
 			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
 
 			buscarTodasRaices (& raices, datos, NewtonRaphson, intervalosDeRaices);
@@ -1122,8 +1146,7 @@ void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 			L_Vaciar (& intervalosDeRaices);
 
 			printf ("m=1.2*m0\n\n");
-
-			datos.masaParticula = datos.masaParticula * 1.2;
+			datos.masaParticula *= 1.2;
 			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
 
 			buscarTodasRaices (& raices, datos, NewtonRaphson, intervalosDeRaices);
@@ -1137,8 +1160,7 @@ void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 			L_Vaciar (& intervalosDeRaices);
 
 			printf ("m=1.5*m0\n\n");
-
-			datos.masaParticula = datos.masaParticula * 1.5;
+			datos.masaParticula *= 1.5;
 			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
 
 			buscarTodasRaices (& raices, datos, NewtonRaphson, intervalosDeRaices);
