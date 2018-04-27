@@ -47,7 +47,7 @@ struct retornoMetodo {
 struct TIntervalos {
 
 	double intervaloMin;
- 	double intervaloMax;
+	double intervaloMax;
 
 };
 
@@ -61,7 +61,7 @@ typedef enum {
 
 typedef struct TNodoListaSimple {
 
-	void* Elem;
+	void * Elem;
 	struct TNodoListaSimple * Siguiente, * Anterior;
 
 } TNodoListaSimple;
