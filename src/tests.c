@@ -69,8 +69,8 @@ TEST testBuscarRaiz (void) {
 	datos = cargarVectorDatos ();
 	datos.masaParticula = 0;
 
-	intervalo.intervaloMin = -1;
-	intervalo.intervaloMax = +1.5;
+	intervalo.intervaloMin = -0.1;
+	intervalo.intervaloMax = +0.1;
 
 	raiz = buscarRaizDentroDeIntervaloMetodoDeConv (datos, intervalo, newtonRaphson);
 	GREATEST_ASSERT (L_Vacia (raiz.iteraciones) == FALSE);

@@ -14,7 +14,7 @@
 #define MAXRAICES 10
 #define MINDIVISOR 1E-16
 #define h 1E-7
-#define ERRORMIN 5E-14 //TODO: tiene que ser mas?
+#define ERRORMIN 3E-16
 #define ERRORMAX 100
 
 void imprimirEnunciado (char enunciado) {
@@ -405,7 +405,8 @@ struct TRaiz buscarRaizDentroDeIntervaloMetodoDeConv (struct TVectorDatos datos,
 	struct TElemRaiz elemIteracionK;
 
 	elemIteracionK.k = 0;
-	elemIteracionK.raiz = (intervalo.intervaloMin + intervalo.intervaloMax) / 2;
+	//elemIteracionK.raiz = (intervalo.intervaloMin + intervalo.intervaloMax) / 2;
+	elemIteracionK.raiz = intervalo.intervaloMin;
 
 	int aux = TRUE;
 	while ((aux == TRUE) && (elemIteracionK.k < MAXITERACIONES)) {
@@ -741,11 +742,11 @@ void cargarMatrizRedondeadaMetodoArranque (char * matriz[TAMMATRIZX][TAMMATRIZY]
 
 	// Pido memoria para los títulos
 	for (size_t i = 0; i < TAMMATRIZX; i++)
-		matriz[i][0] = malloc (sizeof (char) * 5);
+		matriz[i][0] = malloc (sizeof (char) * 15);
 
 	// Pido memoria para los datos
 	for (size_t i = 0; i < TAMMATRIZX; i++)
-		for (size_t j = 0; j < TAMMATRIZY; j++)
+		for (size_t j = 1; j < TAMMATRIZY; j++)
 			matriz[i][j] = malloc (sizeof (char) * 30);
 
 	// titulos
@@ -866,11 +867,11 @@ void cargarMatrizRedondeadaMetodoDeConv (char * matriz[TAMMATRIZX][TAMMATRIZY], 
 
 	// Pido memoria para los títulos
 	for (size_t i = 0; i < TAMMATRIZX; i++)
-		matriz[i][0] = malloc (sizeof (char) * 5);
+		matriz[i][0] = malloc (sizeof (char) * 10);
 
 	// Pido memoria para los datos
 	for (size_t i = 0; i < TAMMATRIZX; i++)
-		for (size_t j = 0; j < TAMMATRIZY; j++)
+		for (size_t j = 1; j < TAMMATRIZY; j++)
 			matriz[i][j] = malloc (sizeof (char) * 30);
 
 	// titulos
@@ -1041,6 +1042,68 @@ void imprimirRaicesMetodoDeConv (TListaSimple raices) {
 
 }
 
+void buscarMaxIntervaloNewton (struct TVectorDatos datos, TListaSimple intervalos) {
+
+	int aux = L_Mover_Cte (& intervalos, L_Primero);
+	TListaSimple raices;
+	TListaSimple intervalo;
+	L_Crear (& intervalo, sizeof (struct TIntervalos));
+
+	while (aux == TRUE) {
+		struct TIntervalos elem;
+		L_Elem_Cte (intervalos, & elem);
+		L_Insertar_Cte (& intervalo, L_Primero, & elem);
+		buscarTodasRaices (& raices, datos, NewtonRaphson, intervalo);
+		L_Vaciar (& intervalo);
+
+		struct TRaiz raizOriginal;
+		L_Elem_Cte (raices, & raizOriginal);
+
+		elem.intervaloMin -= 0.1;
+		L_Insertar_Cte (& intervalo, L_Primero, & elem);
+		buscarTodasRaices (& raices, datos, NewtonRaphson, intervalo);
+
+		struct TRaiz raizActual;
+		L_Elem_Cte (raices, & raizActual);
+		while ((raizActual.raiz > raizOriginal.raiz - 0.01) && (raizActual.raiz < raizOriginal.raiz + 0.01) && (elem.intervaloMin > -1000)) {
+
+			L_Vaciar (& intervalo);
+			limpiarRaices (& raices);
+
+			elem.intervaloMin -= 0.1;
+			L_Insertar_Cte (& intervalo, L_Primero, & elem);
+			buscarTodasRaices (& raices, datos, NewtonRaphson, intervalo);
+
+			L_Elem_Cte (raices, & raizActual);
+
+		}
+
+		printf("%f ", elem.intervaloMin);
+		L_Elem_Cte (intervalos, & elem);
+
+		while ((raizActual.raiz > raizOriginal.raiz - 0.01) && (raizActual.raiz < raizOriginal.raiz + 0.01) && (elem.intervaloMin < 1000)) {
+
+			L_Vaciar (& intervalo);
+			limpiarRaices (& raices);
+
+			elem.intervaloMin += 0.1;
+			L_Insertar_Cte (& intervalo, L_Primero, & elem);
+			buscarTodasRaices (& raices, datos, NewtonRaphson, intervalo);
+
+			L_Elem_Cte (raices, & raizActual);
+
+		}
+
+		printf("%f\n", elem.intervaloMin);
+
+		L_Vaciar (& intervalo);
+		limpiarRaices (& raices);
+
+		aux = L_Mover_Cte (& intervalos, L_Siguiente);
+	}
+
+}
+
 void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 
 	TListaSimple raices;
@@ -1115,9 +1178,14 @@ void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 			L_Vaciar (& intervalosDeRaices);
 			break;
 
+		case 3:
+			datos.masaParticula *= 0.3;
+			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
+			buscarMaxIntervaloNewton (datos, intervalosDeRaices);
+			break;
+
 		case 4:
-			printf ("-> Newton Raphson:\n\n");
-			printf ("m=0.6*m0\n\n");
+			printf ("-> m=0.6*m0\n\n");
 			datos.masaParticula *= 0.6;
 			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
 
@@ -1131,7 +1199,7 @@ void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 
 			L_Vaciar (& intervalosDeRaices);
 
-			printf ("m=0.9*m0\n\n");
+			printf ("-> m=0.9*m0\n\n");
 			datos = cargarVectorDatos ();
 			datos.masaParticula *= 0.9;
 			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
@@ -1146,7 +1214,7 @@ void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 
 			L_Vaciar (& intervalosDeRaices);
 
-			printf ("m=1.2*m0\n\n");
+			printf ("-> m=1.2*m0\n\n");
 			datos = cargarVectorDatos ();
 			datos.masaParticula *= 1.2;
 			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
@@ -1161,7 +1229,7 @@ void buscarPuntosDeEquilibrio (struct TVectorDatos datos, char opcion) {
 
 			L_Vaciar (& intervalosDeRaices);
 
-			printf ("m=1.5*m0\n\n");
+			printf ("-> m=1.5*m0\n\n");
 			datos = cargarVectorDatos ();
 			datos.masaParticula *= 1.5;
 			buscarIntervalosDeRaices (datos, & intervalosDeRaices);
@@ -1190,8 +1258,8 @@ int proceso () {
 	imprimirEnunciado (2);
 	buscarPuntosDeEquilibrio (datos, 2);
 
-	/*imprimirEnunciado (3);
-	buscarPuntosDeEquilibrio (datos, 3);*/
+	imprimirEnunciado (3);
+	buscarPuntosDeEquilibrio (datos, 3);
 
 	imprimirEnunciado (4);
 	buscarPuntosDeEquilibrio (datos, 4);
@@ -1202,11 +1270,8 @@ int proceso () {
 
 int main () {
 
-	int aux = correrTests (); // Pruebas Unitarias
+	correrTests (); // Pruebas Unitarias
 
-	if (aux == TRUE)
-		aux = proceso ();
-
-	return aux;
+	return proceso ();
 
 }
