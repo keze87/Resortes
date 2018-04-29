@@ -1,6 +1,6 @@
 CC=LC_ALL=C gcc -g -lm -std=c11 -Wall -pedantic -pedantic-errors
 
-OBJS=main.c main.h greatest.h tests.c tests.h
+OBJS=CT04.c CT04.h greatest.h tests.c tests.h
 
 all: pre-build main-build
 

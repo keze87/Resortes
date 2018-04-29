@@ -1,4 +1,10 @@
-#include "tests.h"
+// César Ezequiel Herrera 97429
+// Numero de grupo: 4
+//
+// Make:
+// gcc -o CT04 CT04.c -lm -std=c11 -Wall -pedantic -pedantic-errors -I.
+
+#include "tests.h" // Pruebas Unitarias
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
@@ -1269,6 +1275,8 @@ int proceso () {
 }
 
 int main () {
+
+	printf("\nCesar Ezequiel Herrera 97429\n");
 
 	correrTests (); // Pruebas Unitarias
 
