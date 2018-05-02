@@ -905,7 +905,7 @@ void calcularAnchoColumnas (size_t anchos[TAMMATRIZX], char * matriz[TAMMATRIZX]
 }
 
 // Imprime línea entre filas
-void imprimirLineaSeparadora (size_t anchos[TAMMATRIZX], int tamanioX) {
+void imprimirLineaSeparadora (size_t anchos[TAMMATRIZX], int tamanioX, char opcion) {
 
 	printf ("\n");
 
@@ -913,8 +913,12 @@ void imprimirLineaSeparadora (size_t anchos[TAMMATRIZX], int tamanioX) {
 		for (size_t j = 0; j <= anchos[i]; j++)
 			printf ("─");
 
-		if (i != tamanioX - 1)
-			printf ("┼─");
+		if (i != tamanioX - 1) {
+			if (opcion == 0)
+				printf("┼─");
+			else
+				printf("┴─");
+		}
 	}
 
 	printf ("\n");
@@ -950,8 +954,11 @@ void imprimirMatriz (char * matriz[TAMMATRIZX][TAMMATRIZY], int tamanioY, int ta
 				imprimirSeparador (strlen (matriz[i][j]), anchos[i]);
 		}
 
-		imprimirLineaSeparadora (anchos, tamanioX);
+		if (j != tamanioY)
+			imprimirLineaSeparadora (anchos, tamanioX, 0);
 	}
+
+	imprimirLineaSeparadora (anchos, tamanioX, 1);
 
 }
 
