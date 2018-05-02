@@ -639,12 +639,6 @@ void limpiarRaices (TListaSimple * raices) {
 
 }
 
-/*
- *
- * Imprimir a pantalla
- *
- */
-
 void cargarMatrizRedondeadaMetodoArranqueCompleta (char * matriz[TAMMATRIZX][TAMMATRIZY], struct TRaiz raiz) {
 
 	int aux = L_Mover_Cte (& raiz.iteraciones, L_Primero);
@@ -913,20 +907,14 @@ void calcularAnchoColumnas (size_t anchos[TAMMATRIZX], char * matriz[TAMMATRIZX]
 // Imprime línea entre filas
 void imprimirLineaSeparadora (size_t anchos[TAMMATRIZX], int tamanioX) {
 
-	size_t i = 0;
-	size_t anchoTotal = 0;
-
-	for (size_t j = 0; j < tamanioX; j++)
-		anchoTotal = anchoTotal + anchos[j];
-
-	anchoTotal = anchoTotal + (tamanioX - 1) * 3; // Tamaño separador
-
 	printf ("\n");
 
-	while (i <= anchoTotal) {
-		printf ("─");
+	for (size_t i = 0; i < tamanioX; i++) {
+		for (size_t j = 0; j <= anchos[i]; j++)
+			printf ("─");
 
-		i++;
+		if (i != tamanioX - 1)
+			printf ("┼─");
 	}
 
 	printf ("\n");
