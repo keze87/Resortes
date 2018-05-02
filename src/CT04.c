@@ -4,7 +4,7 @@
 // Make:
 // gcc -o CT04 CT04.c -lm -std=c11 -Wall -pedantic -pedantic-errors -I.
 
-#include "tests.h" // Pruebas Unitarias
+// #include "tests.h" // Pruebas Unitarias
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
@@ -659,7 +659,7 @@ void cargarMatrizRedondeadaMetodoArranqueCompleta (char * matriz[TAMMATRIZX][TAM
 		snprintf (matriz[2][y], 29, "%f", iteracion.intervaloMax);
 		snprintf (matriz[3][y], 29, "%.1e", iteracion.funcIntervaloMin);
 		snprintf (matriz[4][y], 29, "%.1e", iteracion.funcIntervaloMax);
-		snprintf (matriz[5][y], 29, "%.16f", iteracion.raiz); // TODO: 16 digitos significativos .16f -> string -> contar numeros != 0
+		snprintf (matriz[5][y], 29, "%.16f", iteracion.raiz);
 		snprintf (matriz[6][y], 29, "%.1e", iteracion.errorAbs);
 		snprintf (matriz[7][y], 29, "%.1e", iteracion.errorRel);
 		snprintf (matriz[8][y], 29, "%f", iteracion.lambda);
@@ -690,7 +690,7 @@ void cargarMatrizRedondeadaMetodoArranqueIncompleta (char * matriz[TAMMATRIZX][T
 		snprintf (matriz[2][y], 29, "%f", iteracion.intervaloMax);
 		snprintf (matriz[3][y], 29, "%.1e", iteracion.funcIntervaloMin);
 		snprintf (matriz[4][y], 29, "%.1e", iteracion.funcIntervaloMax);
-		snprintf (matriz[5][y], 29, "%.16f", iteracion.raiz); // TODO: 16 digitos significativos .16f -> string -> contar numeros != 0
+		snprintf (matriz[5][y], 29, "%.16f", iteracion.raiz);
 		snprintf (matriz[6][y], 29, "%.1e", iteracion.errorAbs);
 		snprintf (matriz[7][y], 29, "%.1e", iteracion.errorRel);
 		snprintf (matriz[8][y], 29, "%f", iteracion.lambda);
@@ -722,7 +722,7 @@ void cargarMatrizRedondeadaMetodoArranqueIncompleta (char * matriz[TAMMATRIZX][T
 		snprintf (matriz[2][y], 29, "%f", iteracion.intervaloMax);
 		snprintf (matriz[3][y], 29, "%.1e", iteracion.funcIntervaloMin);
 		snprintf (matriz[4][y], 29, "%.1e", iteracion.funcIntervaloMax);
-		snprintf (matriz[5][y], 29, "%.16f", iteracion.raiz); // TODO: 16 digitos significativos .16f -> string -> contar numeros != 0
+		snprintf (matriz[5][y], 29, "%.16f", iteracion.raiz);
 		snprintf (matriz[6][y], 29, "%.1e", iteracion.errorAbs);
 		snprintf (matriz[7][y], 29, "%.1e", iteracion.errorRel);
 		snprintf (matriz[8][y], 29, "%f", iteracion.lambda);
@@ -784,7 +784,7 @@ void cargarMatrizRedondeadaMetodoDeConvCompleta (char * matriz[TAMMATRIZX][TAMMA
 		L_Elem_Cte (raiz.iteraciones, & iteracion);
 
 		snprintf (matriz[0][y], 29, "%d", iteracion.k);
-		snprintf (matriz[1][y], 29, "%.16f", iteracion.raiz); // TODO: 16 digitos significativos .16f -> string -> contar numeros != 0
+		snprintf (matriz[1][y], 29, "%.16f", iteracion.raiz);
 		snprintf (matriz[2][y], 29, "%.1e", iteracion.errorAbs);
 		snprintf (matriz[3][y], 29, "%.1e", iteracion.errorRel);
 		snprintf (matriz[4][y], 29, "%f", iteracion.lambda);
@@ -815,7 +815,7 @@ void cargarMatrizRedondeadaMetodoDeConvIncompleta (char * matriz[TAMMATRIZX][TAM
 		L_Elem_Cte (raiz.iteraciones, & iteracion);
 
 		snprintf (matriz[0][y], 29, "%d", iteracion.k);
-		snprintf (matriz[1][y], 29, "%.16f", iteracion.raiz); // TODO: 16 digitos significativos .16f -> string -> contar numeros != 0
+		snprintf (matriz[1][y], 29, "%.16f", iteracion.raiz);
 		snprintf (matriz[2][y], 29, "%.1e", iteracion.errorAbs);
 		snprintf (matriz[3][y], 29, "%.1e", iteracion.errorRel);
 		snprintf (matriz[4][y], 29, "%f", iteracion.lambda);
@@ -847,7 +847,7 @@ void cargarMatrizRedondeadaMetodoDeConvIncompleta (char * matriz[TAMMATRIZX][TAM
 		L_Elem_Cte (raiz.iteraciones, & iteracion);
 
 		snprintf (matriz[0][y], 29, "%d", iteracion.k);
-		snprintf (matriz[1][y], 29, "%.16f", iteracion.raiz); // TODO: 16 digitos significativos .16f -> string -> contar numeros != 0
+		snprintf (matriz[1][y], 29, "%.16f", iteracion.raiz);
 		snprintf (matriz[2][y], 29, "%.1e", iteracion.errorAbs);
 		snprintf (matriz[3][y], 29, "%.1e", iteracion.errorRel);
 		snprintf (matriz[4][y], 29, "%f", iteracion.lambda);
@@ -924,7 +924,7 @@ void imprimirLineaSeparadora (size_t anchos[TAMMATRIZX], int tamanioX) {
 	printf ("\n");
 
 	while (i <= anchoTotal) {
-		printf ("-");
+		printf ("─");
 
 		i++;
 	}
@@ -944,7 +944,7 @@ void imprimirSeparador (int anchoElemento, int anchoColumna) {
 		aux++;
 	}
 
-	printf (" | ");
+	printf (" │ ");
 
 }
 
@@ -1278,7 +1278,7 @@ int main () {
 
 	printf("\nCesar Ezequiel Herrera 97429\n");
 
-	correrTests (); // Pruebas Unitarias
+	// correrTests (); // Pruebas Unitarias
 
 	return proceso ();
 
